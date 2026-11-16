@@ -1,0 +1,1126 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  TILE_SIZE,
+  resolveCircleGridCollision,
+  resolveCircleRectCollision,
+  isPointInVisionCone,
+  evaluateLockpickHit,
+  findNextGridStep,
+  getSpeedMultiplier,
+  isLaserActiveAtTime,
+  getSteamCyclePhase,
+  isSteamActiveAtTime,
+  isTimedButtonActive,
+  getMusicThemeForLevel,
+  getDynamicMusicBpm,
+  isWithinProximityRadius,
+  getConveyorForceAtPoint,
+  getOceanStormWavePush,
+  getNavalProgressPercent,
+  applyIcebergImpact,
+  getLockpickDifficultyConfig,
+  evaluateCircuitFlow,
+  canMoveRushHourBlock,
+  stepRushHourBlock,
+  isRushHourSolved,
+  evaluateNavDialStrike,
+  isPointProtectedByHazard,
+  applySharkObstacleImpact,
+  getSharkRaceSwimSpeed,
+  evaluateSharkRaceOutcome,
+  generateSharkRaceTrack,
+  generateSharkTunnelCourse,
+  evaluateHorizontalSharkRaceOutcome,
+  generateMetroTrainCourse,
+  evaluateMetroTrainOutcome,
+  generateConveyorGauntlet,
+  isInsidePlatformBounds,
+  evaluateConveyorGauntletOutcome,
+  reflectBossProjectile,
+  evaluateBossBattleOutcome,
+  SAVE_STORAGE_KEY,
+  LEGACY_PROGRESS_STORAGE_KEY,
+  TOTAL_CAMPAIGN_LEVELS,
+  DEFAULT_MIN_UNLOCKED_IDX,
+  createDefaultCampaignSave,
+  parseCampaignSave,
+  recordLevelCompletionSave,
+  canWeaponStunDrone,
+  getSnowstormIntensity,
+  areAllBeaconsLit,
+  isCrevasseFall,
+  findHarpoonPullTarget,
+  countActiveWeightPlates,
+  isGeneratorFullyPowered,
+  generateSnowmobileTunnelCourse,
+  evaluateSnowmobileTunnelOutcome,
+  areAllSonarDisabled,
+  canCrossVolcanicHeat,
+  generateMagmaPlatformCourse,
+  evaluateMagmaPlatformOutcome,
+  isFortressGateUnlocked,
+  type CircuitTile,
+  type RushHourBlock,
+} from './rules';
+
+test('circle grid collision slides smoothly without penetrating solid tiles', () => {
+  const isSolid = (c: number, r: number) => c === 2 && r === 2;
+  const res = resolveCircleGridCollision(90, 120, 14, TILE_SIZE, isSolid);
+  assert.ok(res.x <= 96 - 14 + 0.001, `Expected x <= 82, got ${res.x}`);
+  assert.equal(res.y, 120);
+});
+
+test('circle rect collision pushes circle cleanly out of moving vehicles/containers', () => {
+  const miss = resolveCircleRectCollision(20, 20, 10, 50, 50, 60, 30);
+  assert.equal(miss.hit, false);
+  const hit = resolveCircleRectCollision(45, 65, 12, 50, 50, 60, 30);
+  assert.equal(hit.hit, true);
+  assert.ok(hit.x <= 38 + 0.001, `Expected pushed left to <= 38, got ${hit.x}`);
+});
+
+test('vision cone detects player in clear line of sight and blocks behind wall', () => {
+  const isOpaque = (c: number, r: number) => c === 3 && r === 1;
+  const clear = isPointInVisionCone(130, 72, 96, 72, 0, Math.PI / 4, 200, TILE_SIZE, isOpaque);
+  assert.equal(clear, true);
+
+  const occluded = isPointInVisionCone(220, 72, 96, 72, 0, Math.PI / 4, 200, TILE_SIZE, isOpaque);
+  assert.equal(occluded, false);
+
+  const outOfFov = isPointInVisionCone(96, 150, 96, 72, 0, Math.PI / 4, 200, TILE_SIZE, isOpaque);
+  assert.equal(outOfFov, false);
+});
+
+test('lockpick & terminal hack timing evaluation hits inside green zone and misses outside', () => {
+  assert.equal(evaluateLockpickHit(0.5, 0.4, 0.6), 'hit');
+  assert.equal(evaluateLockpickHit(0.4, 0.4, 0.6), 'hit');
+  assert.equal(evaluateLockpickHit(0.39, 0.4, 0.6), 'miss');
+  assert.equal(evaluateLockpickHit(0.65, 0.4, 0.6), 'miss');
+});
+
+test('BFS grid pathfinder routes guard around wall obstacle', () => {
+  const isWalkable = (c: number, r: number) => !(c === 2 && (r === 0 || r === 1));
+  const next = findNextGridStep(1, 0, 3, 0, 5, 3, isWalkable);
+  assert.deepEqual(next, { col: 1, row: 1 });
+});
+
+test('vehicle speed multipliers boost movement accurately including moto & boat turbo', () => {
+  assert.equal(getSpeedMultiplier('none'), 1.0);
+  assert.ok(getSpeedMultiplier('skateboard') > 1.5);
+  assert.ok(getSpeedMultiplier('cart') > getSpeedMultiplier('skateboard'));
+  assert.ok(getSpeedMultiplier('moto') > getSpeedMultiplier('cart'));
+  assert.ok(getSpeedMultiplier('moto', true) > getSpeedMultiplier('moto', false));
+  assert.ok(getSpeedMultiplier('boat') > 2.0);
+  assert.ok(getSpeedMultiplier('boat', true) > getSpeedMultiplier('boat', false));
+});
+
+test('2.5s security laser cycle toggles on and off every 2.5 seconds', () => {
+  assert.equal(isLaserActiveAtTime(0.5, 0, 2.5), true);
+  assert.equal(isLaserActiveAtTime(2.6, 0, 2.5), false);
+  assert.equal(isLaserActiveAtTime(5.1, 0, 2.5), true);
+  assert.equal(isLaserActiveAtTime(0.5, 2.5, 2.5), false);
+});
+
+test('steam vent timed cycle transitions active -> off -> warning -> active', () => {
+  assert.equal(isSteamActiveAtTime(0.4, 0, 1.5, 4.0), true);
+  const offPhase = getSteamCyclePhase(2.2, 0, 1.5, 4.0, 0.6);
+  assert.equal(offPhase.active, false);
+  assert.equal(offPhase.warning, false);
+  const warnPhase = getSteamCyclePhase(3.6, 0, 1.5, 4.0, 0.6);
+  assert.equal(warnPhase.active, false);
+  assert.equal(warnPhase.warning, true);
+});
+
+test('timed pressure button counts down accurately and closes when expired', () => {
+  assert.equal(isTimedButtonActive(5.0, null, 10.0).active, false);
+  const mid = isTimedButtonActive(13.0, 10.0, 10.0);
+  assert.equal(mid.active, true);
+  assert.equal(mid.remaining, 7.0);
+  assert.equal(mid.progress, 0.7);
+  const expired = isTimedButtonActive(20.5, 10.0, 10.0);
+  assert.equal(expired.active, false);
+  assert.equal(expired.remaining, 0);
+});
+
+test('dynamic music engine maps each act theme and accelerates BPM on pursuit', () => {
+  assert.equal(getMusicThemeForLevel(0), 'zoo');
+  assert.equal(getMusicThemeForLevel(2), 'zoo');
+  assert.equal(getMusicThemeForLevel(3), 'city');
+  assert.equal(getMusicThemeForLevel(5), 'city');
+  assert.equal(getMusicThemeForLevel(6), 'ship');
+  assert.equal(getMusicThemeForLevel(8), 'ship');
+  assert.equal(getMusicThemeForLevel(9), 'ocean');
+
+  for (let i = 0; i < 10; i++) {
+    assert.ok(
+      getDynamicMusicBpm(i, 1.0) > getDynamicMusicBpm(i, 0.0) + 20,
+      `Level ${i + 1} chase BPM should accelerate significantly`
+    );
+  }
+});
+
+test('police proximity radar detects player inside radius and ignores outside', () => {
+  assert.equal(isWithinProximityRadius(100, 100, 200, 100, 160), true);
+  assert.equal(isWithinProximityRadius(100, 100, 260, 100, 160), true);
+  assert.equal(isWithinProximityRadius(100, 100, 265, 100, 160), false);
+  assert.equal(isWithinProximityRadius(100, 100, 100, 100, 0), false);
+});
+
+test('warehouse conveyor belts push penguin only inside belt bounds', () => {
+  const belts = [{ x: 100, y: 200, w: 120, h: 48, vx: -115, vy: 0 }];
+  assert.deepEqual(getConveyorForceAtPoint(50, 220, belts), { x: 0, y: 0 });
+  assert.deepEqual(getConveyorForceAtPoint(150, 224, belts), { x: -115, y: 0 });
+});
+
+test('ocean storm wave push and Antarctic distance progress compute bounded values', () => {
+  const w1 = getOceanStormWavePush(1.0, 2400);
+  const w2 = getOceanStormWavePush(3.2, 2400);
+  assert.ok(Math.abs(w1.x) > 0 || Math.abs(w2.x) > 0);
+  assert.equal(getNavalProgressPercent(3000, 3000, 100), 0);
+  assert.equal(Math.round(getNavalProgressPercent(1550, 3000, 100)), 50);
+  assert.equal(getNavalProgressPercent(50, 3000, 100), 100);
+});
+
+test('iceberg impact deals 50% hull damage, triggers 3.0s 50% slow, respects invuln, and sinks boat on 2nd hit', () => {
+  const first = applyIcebergImpact(100, 0);
+  assert.equal(first.hullHp, 50);
+  assert.equal(first.slowTimer, 3.0);
+  assert.equal(first.slowDuration, 3.0);
+  assert.equal(first.damaged, true);
+  assert.equal(first.defeated, false);
+  assert.equal(first.sunk, false);
+
+  const guarded = applyIcebergImpact(first.hullHp, 0.35);
+  assert.equal(guarded.damaged, false);
+  assert.equal(guarded.hullHp, 50);
+
+  const second = applyIcebergImpact(first.hullHp, 0);
+  assert.equal(second.hullHp, 0);
+  assert.equal(second.slowTimer, 3.0);
+  assert.equal(second.damaged, true);
+  assert.equal(second.defeated, true);
+  assert.equal(second.sunk, true);
+});
+
+test('lockpick and terminal hack difficulty scales +2 grades faster and narrower across stages', () => {
+  const s1 = getLockpickDifficultyConfig(0.16, 2, 1);
+  const s2 = getLockpickDifficultyConfig(0.16, 2, 2);
+  const n8 = getLockpickDifficultyConfig(0.11, 7, 3);
+  assert.ok(s1.speed >= 1.9, `Expected +2 grade speed >= 1.9, got ${s1.speed}`);
+  assert.ok(s2.speed > s1.speed, 'Stage 2 should sweep faster than Stage 1');
+  assert.ok(s2.zoneWidth < s1.zoneWidth, 'Stage 2 green zone should tighten');
+  assert.ok(n8.speed > s2.speed && n8.zoneWidth >= 0.078 && n8.zoneWidth <= 0.12);
+});
+
+test('metro circuit pipe BFS propagates energy left-to-right only when all path segments align', () => {
+  const grid: CircuitTile[][] = [
+    [
+      { kind: 'source', rot: 0 },
+      { kind: 'straight', rot: 1 }, // vertical (disconnected)
+      { kind: 'elbow', rot: 2 },
+      { kind: 'empty', rot: 0 },
+    ],
+    [
+      { kind: 'empty', rot: 0 },
+      { kind: 'empty', rot: 0 },
+      { kind: 'elbow', rot: 0 },
+      { kind: 'sink', rot: 0 },
+    ],
+  ];
+  assert.equal(evaluateCircuitFlow(grid).solved, false);
+
+  // Rotate straight to horizontal (rot 0), (0,2) elbow to [L,D] (rot 2), (1,2) elbow to [U,R] (rot 0)
+  grid[0][1].rot = 0;
+  const res = evaluateCircuitFlow(grid);
+  assert.equal(res.solved, true);
+  assert.equal(res.powered[0][0], true);
+  assert.equal(res.powered[0][1], true);
+  assert.equal(res.powered[0][2], true);
+  assert.equal(res.powered[1][2], true);
+  assert.equal(res.powered[1][3], true);
+});
+
+test('Rush Hour 6x6 cargo puzzle prevents overlap and is provably solvable in >= 5 moves', () => {
+  const initial: RushHourBlock[] = [
+    { id: 'skate', x: 0, y: 2, len: 2, dir: 'h', isTarget: true },
+    { id: 'v1', x: 2, y: 1, len: 3, dir: 'v' },
+    { id: 'h1', x: 1, y: 4, len: 2, dir: 'h' },
+    { id: 'h2', x: 2, y: 5, len: 2, dir: 'h' },
+    { id: 'v2', x: 4, y: 2, len: 2, dir: 'v' },
+    { id: 'v3', x: 5, y: 1, len: 3, dir: 'v' },
+    { id: 'h3', x: 3, y: 0, len: 3, dir: 'h' },
+    { id: 'h4', x: 0, y: 5, len: 2, dir: 'h' },
+  ];
+  assert.equal(isRushHourSolved(initial, 6), false);
+  // Target cannot push through v1 at x=2
+  assert.equal(canMoveRushHourBlock(initial, 'skate', 1, 6), false);
+
+  // BFS shortest-solution check
+  const encode = (bs: RushHourBlock[]) => bs.map((b) => `${b.x},${b.y}`).join('|');
+  const visited = new Set<string>([encode(initial)]);
+  const queue: Array<{ state: RushHourBlock[]; moves: number }> = [{ state: initial, moves: 0 }];
+  let minMoves = -1;
+  let head = 0;
+  while (head < queue.length) {
+    const cur = queue[head++];
+    if (isRushHourSolved(cur.state, 6)) {
+      minMoves = cur.moves;
+      break;
+    }
+    for (const blk of cur.state) {
+      for (const dir of [-1, 1]) {
+        for (let step = 1; step <= 4; step++) {
+          const delta = dir * step;
+          if (!canMoveRushHourBlock(cur.state, blk.id, delta, 6)) break;
+          const next = stepRushHourBlock(cur.state, blk.id, delta, 6);
+          const key = encode(next);
+          if (!visited.has(key)) {
+            visited.add(key);
+            queue.push({ state: next, moves: cur.moves + 1 });
+          }
+        }
+      }
+    }
+  }
+  assert.ok(minMoves >= 5, `Expected Rush Hour puzzle to require >= 5 moves, got ${minMoves}`);
+});
+
+test('navigation dial circular strike handles wraparound accurately', () => {
+  assert.equal(evaluateNavDialStrike(0.98, 0.02, 0.08), 'hit');
+  assert.equal(evaluateNavDialStrike(0.5, 0.02, 0.08), 'miss');
+});
+
+test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
+  const fs = await import('node:fs');
+  const html = fs.readFileSync('index.html', 'utf8');
+  const match = html.match(/const LEVELS = (\[[\s\S]*?\n      \]);/);
+  assert.ok(match, 'LEVELS array should exist in index.html');
+  const levels = new Function(`return ${match[1]};`)() as Array<{
+    id: number;
+    code: string;
+    name: string;
+    mode?: string;
+    theme?: string;
+    snowstorm?: boolean;
+    grid: string[];
+    spawn: { x: number; y: number };
+    doors: Array<{ col: number; row: number; type: string; keyColor?: string; gateId?: number; label?: string }>;
+    pickups: Array<{ kind: string; weapon?: string; keyColor?: string; x: number; y: number; label?: string }>;
+    switches?: Array<{ x: number; y: number; label: string }>;
+    pressureButtons?: Array<{ x: number; y: number; duration: number; label: string }>;
+    subgameZones?: Array<{ id: string; kind: string; x: number; y: number; radius?: number; label: string }>;
+    thermalBeacons?: Array<{ id: string; x: number; y: number; label: string }>;
+    cages?: Array<{ id: string; x: number; y: number; label: string }>;
+    weightPlates?: Array<{ id: string; x: number; y: number }>;
+    geothermalCores?: Array<{ id: string; x: number; y: number; label: string }>;
+    centralGenerator?: { x: number; y: number; requiredCores: number; label: string };
+    hunterTraps?: Array<{ id: string; x: number; y: number }>;
+    spotlights?: Array<{ cx: number; cy: number }>;
+    sonarConsoles?: Array<{ id: string; x: number; y: number; label: string }>;
+    cryoNodes?: Array<{ id: string; gateId: number; x: number; y: number; label?: string }>;
+    harpoonLocks?: Array<{ id: string; gateId: number; x: number; y: number; label?: string }>;
+    envProps?: Array<{ kind: string; x: number; y: number }>;
+    reactionBoost?: number;
+    traffic?: Array<{ axis?: string }>;
+    drones?: Array<{ name?: string; speed: number; fov?: number; range?: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
+    postSubgameDrones?: Array<{ name: string; speed: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
+    postSubgameGuards?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
+    conveyors?: Array<{ x: number; y: number; w: number; h: number; vx: number; vy: number }>;
+    oilSlicks?: Array<{ x: number; y: number; rx: number; ry: number }>;
+    movingIcebergs?: Array<{ x1: number; y1: number; x2: number; y2: number }>;
+    seaMines?: Array<{ x: number; y: number }>;
+    vehicles: Array<{ kind: string; x: number; y: number }>;
+    cameras: Array<{ x: number; y: number; baseAngle: number; sweep: number; range: number; fov: number }>;
+    guards: Array<{
+      name: string;
+      speed: number;
+      isElite?: boolean;
+      isHeavy?: boolean;
+      isPatrolVehicle?: boolean;
+      isPoacher?: boolean;
+      isPatrolSnowmobile?: boolean;
+      isRobotDog?: boolean;
+      proximityRadius?: number;
+      waypoints: Array<{ x: number; y: number }>;
+    }>;
+    patrolBoats?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
+  }>;
+
+  assert.equal(levels.length, 16, 'Should contain all 16 complete campaign levels (Acts I-V)');
+
+  const isStaticObstacleChar = (ch: string | undefined) =>
+    ch === undefined || ch === '#' || ch === 'W' || ch === 'T' || ch === 'B' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'C' || ch === 'L';
+
+  for (const lvl of levels) {
+    const rows = lvl.grid.length;
+    const cols = lvl.grid[0].length;
+    for (const r of lvl.grid) assert.equal(r.length, cols, `${lvl.code}: uniform row length`);
+
+    const startC = Math.floor(lvl.spawn.x);
+    const startR = Math.floor(lvl.spawn.y);
+
+    if (lvl.mode === 'naval') {
+      assert.ok(cols >= 34 && rows >= 78, `${lvl.code}: expanded naval map expected >=34x78, got ${cols}x${rows}`);
+      assert.ok((lvl.movingIcebergs || []).length >= 14, `${lvl.code}: +2 grade dense moving icebergs required`);
+      assert.ok((lvl.seaMines || []).length >= 18, `${lvl.code}: +2 grade floating sea mines required`);
+      assert.ok((lvl.patrolBoats || []).length >= 10, `${lvl.code}: +2 grade fast patrol boats required`);
+      for (const pb of lvl.patrolBoats || []) {
+        assert.ok(pb.speed >= 215, `${lvl.code}: ${pb.name} speed >= 215 expected`);
+      }
+
+      // Narrow single Antarctic exit channel check: row 1..2 E tiles contiguous and bounded by indestructible 'H' glacier walls
+      let channelCols = 0;
+      for (let c = 0; c < cols; c++) {
+        if (lvl.grid[1][c] === 'E') channelCols++;
+      }
+      assert.ok(channelCols >= 3 && channelCols <= 6, `${lvl.code}: expected single narrow exit channel (3..6 cols wide), got ${channelCols}`);
+      assert.ok(lvl.grid[1].includes('H'), `${lvl.code}: impassable H glacier barrier must frame the single channel`);
+
+      const walkableSea = (c: number, r: number) => {
+        const ch = lvl.grid[r]?.[c];
+        return ch !== undefined && !isStaticObstacleChar(ch);
+      };
+      assert.ok(walkableSea(startC, startR), `${lvl.code}: naval spawn must be open sea`);
+      for (const pb of lvl.patrolBoats || []) {
+        assert.ok(pb.speed > 0 && pb.waypoints.length >= 2, `${lvl.code}: Patrol boat ${pb.name} must actively patrol`);
+        const distinctBoatWps = new Set(pb.waypoints.map((w) => `${w.x},${w.y}`));
+        assert.ok(distinctBoatWps.size >= 2, `${lvl.code}: Patrol boat ${pb.name} must have >=2 distinct waypoints`);
+        for (let i = 0; i < pb.waypoints.length; i++) {
+          const wp = pb.waypoints[i];
+          const nextWp = pb.waypoints[(i + 1) % pb.waypoints.length];
+          assert.ok(
+            walkableSea(Math.floor(wp.x), Math.floor(wp.y)),
+            `${lvl.code}: Patrol boat ${pb.name} waypoint (${wp.x},${wp.y}) must be navigable`
+          );
+          const step = findNextGridStep(
+            Math.floor(wp.x),
+            Math.floor(wp.y),
+            Math.floor(nextWp.x),
+            Math.floor(nextWp.y),
+            cols,
+            rows,
+            walkableSea
+          );
+          assert.ok(step !== null, `${lvl.code}: Patrol boat ${pb.name} path clear`);
+        }
+      }
+      let exitReachable = false;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (lvl.grid[r][c] === 'E') {
+            const step = findNextGridStep(startC, startR, c, r, cols, rows, walkableSea);
+            if (step !== null) exitReachable = true;
+          }
+        }
+      }
+      assert.ok(exitReachable, `${lvl.code}: Antarctic narrow channel exit E must be reachable by boat`);
+      continue;
+    }
+
+    // Odd-level interactive subgame & N3 post-subgame reinforcement checks
+    if (lvl.id === 2) {
+      assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'aquarium_shark'), 'N3 must include aquarium_shark subgameZone');
+      assert.ok(!lvl.pickups.some((pk) => pk.kind === 'gadget' && pk.weapon === 'fish'), 'N3 must NOT spawn fish launcher on floor');
+      assert.equal((lvl.postSubgameGuards || []).length, 2, 'N3 must spawn 2 fast post-subgame guards near exit');
+      assert.ok((lvl.postSubgameDrones || []).length >= 2, 'N3 must spawn post-subgame armored drones');
+      for (const dr of lvl.postSubgameDrones || []) {
+        assert.equal(dr.fishOnly, true, `N3 drone ${dr.name} must require fish cannon (fishOnly: true)`);
+      }
+    }
+    if (lvl.id === 4) {
+      assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'metro_circuits'), 'N5 must include metro_circuits stairs subgameZone');
+      assert.ok(lvl.doors.some((d) => d.type === 'circuit'), 'N5 must lock final gate behind circuit subgame');
+    }
+    if (lvl.id === 6) {
+      assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'warehouse_rushhour'), 'N7 must include warehouse_rushhour box puzzle subgameZone');
+      assert.equal(lvl.vehicles.length, 0, 'N7 skateboard should only be unlocked by solving Rush Hour puzzle');
+    }
+    if (lvl.id === 8) {
+      assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'bridge_calibration'), 'N9 must include bridge_calibration navigation subgameZone');
+    }
+
+    // N4 & N5 City: cross traffic + fast drones + proximity police patrols
+    if (lvl.id === 3 || lvl.id === 4) {
+      assert.ok((lvl.traffic || []).some((t) => t.axis === 'y'), `${lvl.code}: vertical cross-traffic required`);
+      assert.ok((lvl.traffic || []).some((t) => !t.axis || t.axis === 'x'), `${lvl.code}: horizontal traffic required`);
+      assert.ok((lvl.drones || []).length >= 2, `${lvl.code}: fast surveillance drones required`);
+      assert.ok(lvl.guards.some((g) => g.isPatrolVehicle && (g.proximityRadius || 0) > 100), `${lvl.code}: proximity police patrol required`);
+    }
+
+    // N7 Warehouse: conveyor belts + tighter timed pressure door + opposite switches
+    if (lvl.id === 6) {
+      assert.ok((lvl.conveyors || []).length >= 3, `${lvl.code}: conveyor belts required`);
+      assert.ok((lvl.pressureButtons || []).length >= 1, `${lvl.code}: tighter timed gate required`);
+    }
+
+    // N8 Engine room: oil slicks
+    if (lvl.id === 7) {
+      assert.ok((lvl.oilSlicks || []).length >= 3, `${lvl.code}: slippery oil slicks required`);
+    }
+
+    // Act V (N11-N16): Polar maps >= 68x36 with zero police enemies and distinct mechanics
+    if (lvl.id >= 10) {
+      assert.ok(cols >= 68, `${lvl.code}: Act V width must be >= 68`);
+      assert.ok(rows >= 36, `${lvl.code}: Act V height must be >= 36`);
+      assert.ok(
+        lvl.guards.every((g) => !g.isPatrolVehicle && !/polic/i.test(g.name)),
+        `${lvl.code}: Act V must NOT have police guards`
+      );
+      if (lvl.id === 10) {
+        assert.equal(lvl.snowstorm, true, 'N11 must have cyclical snowstorms enabled');
+        assert.equal((lvl.thermalBeacons || []).length, 3, 'N11 must have 3 thermal beacons');
+        assert.ok(lvl.doors.some((d) => d.type === 'beacons'), 'N11 must lock exit behind beacons gate');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), 'N11 must include Cryo Snow Cannon');
+        assert.ok(lvl.guards.filter((g) => g.isPoacher).length >= 4, 'N11 +3 difficulty must double active poachers (>=4)');
+        assert.ok(lvl.guards.filter((g) => g.isPatrolSnowmobile).length >= 4, 'N11 must add outer perimeter patrol snowmobiles');
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        for (const k of ['dish', 'crate', 'sled', 'campfire', 'footprints']) {
+          assert.ok(propKinds.has(k), `N11 must include ${k} visual prop`);
+        }
+      }
+      if (lvl.id === 11) {
+        assert.equal((lvl.cages || []).length, 3, 'N12 must have 3 penguin prisoner cages');
+        assert.equal((lvl.weightPlates || []).length, 4, 'N12 must have 4 simultaneous weight plates');
+        assert.ok(lvl.doors.some((d) => d.type === 'weight_rescue'), 'N12 must lock exit behind 4-penguin weight_rescue gate');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'harpoon'), 'N12 must include Magnetic Harpoon');
+        assert.ok(lvl.grid.some((r) => r.includes('C')), 'N12 must include glacial crevasses C');
+        assert.ok(lvl.guards.filter((g) => g.isPoacher).length >= 4, 'N12 must include additional cavern poachers');
+        assert.ok((lvl.drones || []).filter((d) => (d.fov || 0) >= 0.85).length >= 3, 'N12 must include wide-FOV arctic drones near cages');
+        assert.ok((lvl.reactionBoost || 1) >= 1.5, 'N12 must increase enemy reaction speed');
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        for (const k of ['stalagmite', 'aurora_crystal', 'crevasse_crack']) {
+          assert.ok(propKinds.has(k), `N12 must include ${k} visual prop`);
+        }
+      }
+      if (lvl.id === 12) {
+        assert.equal((lvl.geothermalCores || []).length, 3, 'N13 must have 3 geothermal cores');
+        assert.ok(Boolean(lvl.centralGenerator), 'N13 must have central geothermal generator');
+        assert.ok((lvl.hunterTraps || []).length >= 5, 'N13 must include hunter traps');
+        assert.ok((lvl.spotlights || []).length >= 3, 'N13 must include sweeping white spotlights');
+        assert.ok(lvl.vehicles.some((v) => v.kind === 'snowmobile'), 'N13 must include drivable Turbo Snowmobiles');
+        assert.ok(lvl.guards.some((g) => g.isRobotDog), 'N13 must include Robot Dogs');
+        assert.ok(lvl.doors.some((d) => d.type === 'generator'), 'N13 must lock final exit behind generator gate');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'snowmobile_tunnel'), 'N13 must include snowmobile_tunnel subgameZone');
+        assert.ok(lvl.doors.some((d) => d.type === 'master_generator'), 'N13 must include master_generator door unlocked by subgame');
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        for (const k of ['drill_tower', 'steam_pipe', 'fuel_barrel', 'machinery', 'strobe_light']) {
+          assert.ok(propKinds.has(k), `N13 must include ${k} visual prop`);
+        }
+      }
+      if (lvl.id === 13) {
+        assert.equal(lvl.theme, 'arctic_sub', 'N14 must use arctic_sub theme');
+        assert.equal((lvl.sonarConsoles || []).length, 3, 'N14 must have 3 sonar consoles');
+        assert.ok(lvl.doors.some((d) => d.type === 'sonar'), 'N14 must include sonar immersion gate');
+        assert.ok(lvl.guards.some((g) => g.isElite), 'N14 must include elite tactical flashlight guards');
+        assert.ok((lvl.drones || []).length >= 2, 'N14 must include patrol drones');
+      }
+      if (lvl.id === 14) {
+        assert.equal(lvl.theme, 'arctic_volcano', 'N15 must use arctic_volcano theme');
+        assert.ok(lvl.grid.some((r) => r.includes('L')), 'N15 must include glowing magma river tiles L');
+        assert.ok(lvl.grid.some((r) => r.includes('V')), 'N15 must include thermal-shield bridge tiles V');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'magma_platforms'), 'N15 must include magma_platforms subgameZone');
+        assert.ok(lvl.doors.some((d) => d.type === 'thermal_shield'), 'N15 must include thermal_shield gate');
+      }
+      if (lvl.id === 15) {
+        assert.equal(lvl.theme, 'arctic_fortress', 'N16 must use arctic_fortress theme');
+        assert.ok(cols >= 74 && rows >= 38, 'N16 giant fortress must be >= 74x38 tiles');
+        assert.ok((lvl.spotlights || []).length >= 4, 'N16 must include searchlights');
+        assert.ok(lvl.guards.some((g) => g.isRobotDog), 'N16 must include fast robot dogs');
+        assert.ok(lvl.guards.some((g) => g.isPatrolSnowmobile), 'N16 must include patrol snowmobiles');
+        assert.ok(lvl.guards.some((g) => g.isPoacher && g.isHeavy), 'N16 must include heavy poachers');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), 'N16 must include cryo_snow pickup');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'harpoon'), 'N16 must include harpoon pickup');
+        assert.equal(lvl.doors.filter((d) => d.type === 'armored_fortress').length, 3, 'N16 must have 3 armored fortress gates');
+        assert.ok((lvl.cryoNodes || []).length >= 3, 'N16 must have >= 3 Cryo Valve Nodes');
+        assert.ok((lvl.harpoonLocks || []).length >= 3, 'N16 must have >= 3 Magnetic Harpoon Locks');
+      }
+    }
+
+    // Expanded exploration maps for N1-N9 & N11-N13 (>= 46x26 tiles)
+    assert.ok(cols >= 46 && rows >= 26, `${lvl.code}: expanded exploration map expected >=46x26, got ${cols}x${rows}`);
+
+    // Door mechanism variety checks per level specification:
+    if (lvl.id === 0 || lvl.id === 3) {
+      assert.ok(lvl.doors.some((d) => d.type === 'keycard' && d.keyColor === 'blue'), `${lvl.code}: blue keycard door required`);
+      assert.ok(lvl.doors.some((d) => d.type === 'keycard' && d.keyColor === 'gold'), `${lvl.code}: gold keycard door required`);
+    }
+    if (lvl.id === 1 || lvl.id === 6) {
+      assert.ok((lvl.switches || []).length >= 2, `${lvl.code}: >=2 energy switches required`);
+      assert.ok(lvl.doors.some((d) => d.type === 'switches'), `${lvl.code}: switch-powered door required`);
+    }
+    if (lvl.id === 2 || lvl.id === 7) {
+      assert.ok(lvl.doors.some((d) => d.type === 'hack'), `${lvl.code}: terminal hack door required`);
+    }
+    if (lvl.id === 4 || lvl.id === 5 || lvl.id === 8) {
+      assert.ok((lvl.pressureButtons || []).length >= 1, `${lvl.code}: timed pressure button required`);
+      assert.ok(lvl.doors.some((d) => d.type === 'timed'), `${lvl.code}: timed gate required`);
+      assert.ok(lvl.doors.some((d) => d.type === 'keycard'), `${lvl.code}: guarded master keycard door required`);
+    }
+
+    // Mandatory active patrol verification on ALL guards
+    const walkableNoDoors = (c: number, r: number) => {
+      const ch = lvl.grid[r]?.[c];
+      return ch !== undefined && !isStaticObstacleChar(ch) && ch !== 'D' && ch !== 'K';
+    };
+
+    for (const g of lvl.guards) {
+      assert.ok(g.speed > 0 && g.waypoints.length >= 2, `${lvl.code}: Guard ${g.name} must actively move with >=2 waypoints`);
+      const distinctWps = new Set(g.waypoints.map((w) => `${w.x},${w.y}`));
+      assert.ok(distinctWps.size >= 2, `${lvl.code}: Guard ${g.name} must not have identical waypoints`);
+      for (let i = 0; i < g.waypoints.length; i++) {
+        const wp = g.waypoints[i];
+        const nextWp = g.waypoints[(i + 1) % g.waypoints.length];
+        assert.ok(
+          walkableNoDoors(Math.floor(wp.x), Math.floor(wp.y)),
+          `${lvl.code}: Guard ${g.name} waypoint (${wp.x},${wp.y}) must be walkable`
+        );
+        const step = findNextGridStep(
+          Math.floor(wp.x),
+          Math.floor(wp.y),
+          Math.floor(nextWp.x),
+          Math.floor(nextWp.y),
+          cols,
+          rows,
+          walkableNoDoors
+        );
+        assert.ok(
+          step !== null,
+          `${lvl.code}: Guard ${g.name} must have clear path from (${wp.x},${wp.y}) to (${nextWp.x},${nextWp.y})`
+        );
+      }
+    }
+
+    // Objective protection check for every keycard, switch, and timed pressure button in N1-N9
+    const isOpaqueAll = (c: number, r: number) => {
+      const ch = lvl.grid[r]?.[c];
+      return ch === undefined || ch === '#' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'D' || ch === 'K';
+    };
+
+    for (const pk of lvl.pickups) {
+      if (pk.kind !== 'keycard') continue;
+      assert.ok(
+        isPointProtectedByHazard(pk.x * TILE_SIZE, pk.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Keycard ${pk.label || pk.keyColor} at (${pk.x},${pk.y}) must be directly guarded by hazard`
+      );
+    }
+    for (const sw of lvl.switches || []) {
+      assert.ok(
+        isPointProtectedByHazard(sw.x * TILE_SIZE, sw.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Switch ${sw.label} at (${sw.x},${sw.y}) must be directly guarded by hazard`
+      );
+    }
+    for (const pb of lvl.pressureButtons || []) {
+      assert.ok(
+        isPointProtectedByHazard(pb.x * TILE_SIZE, pb.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Pressure button ${pb.label} at (${pb.x},${pb.y}) must be directly guarded by hazard`
+      );
+    }
+
+    for (const tb of lvl.thermalBeacons || []) {
+      assert.ok(
+        isPointProtectedByHazard(tb.x * TILE_SIZE, tb.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Thermal beacon ${tb.label} at (${tb.x},${tb.y}) must be directly guarded by hazard`
+      );
+    }
+    for (const sn of lvl.sonarConsoles || []) {
+      assert.ok(
+        isPointProtectedByHazard(sn.x * TILE_SIZE, sn.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Sonar console ${sn.label} at (${sn.x},${sn.y}) must be directly guarded by hazard`
+      );
+    }
+
+    // Simulate progressive door unlocks in dependency order
+    const doorAt = new Map(lvl.doors.map((d) => [`${d.col},${d.row}`, d]));
+    const opened = new Set<string>();
+    const hasKey = new Set<string>();
+    const pressedButtons = new Set<number>();
+    const activeSwitches = new Set<number>();
+    const litBeacons = new Set<number>();
+    const openedCages = new Set<number>();
+    const collectedCores = new Set<number>();
+    const disabledSonars = new Set<number>();
+    const activeCryoNodes = new Set<string>();
+    const activeHarpoonLocks = new Set<string>();
+    const completedSubgames = new Set<string>();
+
+    const canWalkNow = (c: number, r: number) => {
+      const ch = lvl.grid[r]?.[c];
+      if (isStaticObstacleChar(ch)) return false;
+      if (ch === 'V' && !completedSubgames.has('magma_platforms')) return false;
+      if (ch === 'D' || ch === 'K') return opened.has(`${c},${r}`);
+      return true;
+    };
+
+    const isReachable = (tx: number, ty: number) =>
+      findNextGridStep(startC, startR, tx, ty, cols, rows, canWalkNow) !== null;
+
+    let changed = true;
+    while (changed) {
+      changed = false;
+
+      // Complete reachable subgames
+      for (const sg of lvl.subgameZones || []) {
+        if (!completedSubgames.has(sg.kind) && isReachable(Math.floor(sg.x), Math.floor(sg.y))) {
+          completedSubgames.add(sg.kind);
+          changed = true;
+        }
+      }
+
+      // Pick up reachable keycards
+      for (const pk of lvl.pickups) {
+        if (pk.kind === 'keycard' && pk.keyColor && !hasKey.has(pk.keyColor)) {
+          if (isReachable(Math.floor(pk.x), Math.floor(pk.y))) {
+            hasKey.add(pk.keyColor);
+            changed = true;
+          }
+        }
+      }
+
+      // Activate reachable energy switches
+      (lvl.switches || []).forEach((sw, idx) => {
+        if (!activeSwitches.has(idx) && isReachable(Math.floor(sw.x), Math.floor(sw.y))) {
+          activeSwitches.add(idx);
+          changed = true;
+        }
+      });
+
+      // Act V: light reachable thermal beacons (N11)
+      (lvl.thermalBeacons || []).forEach((tb, idx) => {
+        if (!litBeacons.has(idx) && isReachable(Math.floor(tb.x), Math.floor(tb.y))) {
+          litBeacons.add(idx);
+          changed = true;
+        }
+      });
+
+      // Act V: open reachable prisoner cages (N12)
+      (lvl.cages || []).forEach((cg, idx) => {
+        if (!openedCages.has(idx) && isReachable(Math.floor(cg.x), Math.floor(cg.y))) {
+          openedCages.add(idx);
+          changed = true;
+        }
+      });
+
+      // Act V: collect reachable geothermal cores (N13)
+      (lvl.geothermalCores || []).forEach((gc, idx) => {
+        if (!collectedCores.has(idx) && isReachable(Math.floor(gc.x), Math.floor(gc.y))) {
+          collectedCores.add(idx);
+          changed = true;
+        }
+      });
+
+      // Act V: disable reachable sonar consoles (N14)
+      (lvl.sonarConsoles || []).forEach((sn, idx) => {
+        if (!disabledSonars.has(idx) && isReachable(Math.floor(sn.x), Math.floor(sn.y))) {
+          disabledSonars.add(idx);
+          changed = true;
+        }
+      });
+
+      // Act V: activate reachable Cryo Nodes & Magnetic Locks (N16)
+      for (const cn of lvl.cryoNodes || []) {
+        if (!activeCryoNodes.has(cn.id) && isReachable(Math.floor(cn.x), Math.floor(cn.y))) {
+          activeCryoNodes.add(cn.id);
+          changed = true;
+        }
+      }
+      for (const hl of lvl.harpoonLocks || []) {
+        if (!activeHarpoonLocks.has(hl.id) && isReachable(Math.floor(hl.x), Math.floor(hl.y))) {
+          activeHarpoonLocks.add(hl.id);
+          changed = true;
+        }
+      }
+
+      // Press reachable timed buttons -> open timed doors
+      (lvl.pressureButtons || []).forEach((pb, idx) => {
+        if (!pressedButtons.has(idx) && isReachable(Math.floor(pb.x), Math.floor(pb.y))) {
+          pressedButtons.add(idx);
+          for (const d of lvl.doors) {
+            if (d.type === 'timed' && !opened.has(`${d.col},${d.row}`)) {
+              opened.add(`${d.col},${d.row}`);
+              changed = true;
+            }
+          }
+        }
+      });
+
+      // Subgame-linked doors unlock immediately once subgame is won
+      if (completedSubgames.has('metro_circuits')) {
+        for (const d of lvl.doors) {
+          if (d.type === 'circuit' && !opened.has(`${d.col},${d.row}`)) {
+            opened.add(`${d.col},${d.row}`);
+            changed = true;
+          }
+        }
+      }
+      if (completedSubgames.has('snowmobile_tunnel')) {
+        for (const d of lvl.doors) {
+          if (d.type === 'master_generator' && !opened.has(`${d.col},${d.row}`)) {
+            opened.add(`${d.col},${d.row}`);
+            changed = true;
+          }
+        }
+      }
+      if (completedSubgames.has('magma_platforms')) {
+        for (const d of lvl.doors) {
+          if (d.type === 'thermal_shield' && !opened.has(`${d.col},${d.row}`)) {
+            opened.add(`${d.col},${d.row}`);
+            changed = true;
+          }
+        }
+      }
+
+      // Open reachable hack / lockpick / unlocked keycard / switches / Act V doors
+      for (const d of lvl.doors) {
+        const key = `${d.col},${d.row}`;
+        if (opened.has(key)) continue;
+        const adjWalkable = [
+          [d.col + 1, d.row],
+          [d.col - 1, d.row],
+          [d.col, d.row + 1],
+          [d.col, d.row - 1],
+        ].some(([ac, ar]) => canWalkNow(ac, ar) && isReachable(ac, ar));
+
+        if (!adjWalkable) continue;
+        if (d.type === 'lockpick' || d.type === 'hack') {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'keycard' && d.keyColor && hasKey.has(d.keyColor)) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'switches' && (lvl.switches || []).length > 0 && activeSwitches.size === (lvl.switches || []).length) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'beacons' && (lvl.thermalBeacons || []).length > 0 && litBeacons.size === (lvl.thermalBeacons || []).length) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'weight_rescue' &&
+          (lvl.cages || []).length > 0 &&
+          openedCages.size === (lvl.cages || []).length &&
+          (lvl.weightPlates || []).every((wp) => isReachable(Math.floor(wp.x), Math.floor(wp.y)))
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'generator' &&
+          lvl.centralGenerator &&
+          collectedCores.size >= (lvl.centralGenerator.requiredCores || 3) &&
+          isReachable(Math.floor(lvl.centralGenerator.x), Math.floor(lvl.centralGenerator.y))
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'sonar' && (lvl.sonarConsoles || []).length > 0 && disabledSonars.size === (lvl.sonarConsoles || []).length) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'armored_fortress' &&
+          typeof d.gateId === 'number' &&
+          isFortressGateUnlocked(
+            (lvl.cryoNodes || []).map((n) => ({ gateId: n.gateId, activated: activeCryoNodes.has(n.id) })),
+            (lvl.harpoonLocks || []).map((l) => ({ gateId: l.gateId, activated: activeHarpoonLocks.has(l.id) })),
+            d.gateId
+          )
+        ) {
+          opened.add(key);
+          changed = true;
+        }
+      }
+    }
+
+    for (const pk of lvl.pickups) {
+      assert.ok(isReachable(Math.floor(pk.x), Math.floor(pk.y)), `${lvl.code}: Pickup at (${pk.x},${pk.y}) must be reachable`);
+    }
+    for (const v of lvl.vehicles) {
+      assert.ok(isReachable(Math.floor(v.x), Math.floor(v.y)), `${lvl.code}: Vehicle ${v.kind} at (${v.x},${v.y}) must be reachable`);
+    }
+    for (const sw of lvl.switches || []) {
+      assert.ok(isReachable(Math.floor(sw.x), Math.floor(sw.y)), `${lvl.code}: Switch ${sw.label} must be reachable`);
+    }
+    for (const pb of lvl.pressureButtons || []) {
+      assert.ok(isReachable(Math.floor(pb.x), Math.floor(pb.y)), `${lvl.code}: Timed button ${pb.label} must be reachable`);
+    }
+    for (const sg of lvl.subgameZones || []) {
+      assert.ok(isReachable(Math.floor(sg.x), Math.floor(sg.y)), `${lvl.code}: Subgame zone ${sg.label} must be reachable`);
+    }
+    for (const tb of lvl.thermalBeacons || []) {
+      assert.ok(isReachable(Math.floor(tb.x), Math.floor(tb.y)), `${lvl.code}: Beacon ${tb.label} must be reachable`);
+    }
+    for (const cg of lvl.cages || []) {
+      assert.ok(isReachable(Math.floor(cg.x), Math.floor(cg.y)), `${lvl.code}: Cage ${cg.label} must be reachable`);
+    }
+    for (const gc of lvl.geothermalCores || []) {
+      assert.ok(isReachable(Math.floor(gc.x), Math.floor(gc.y)), `${lvl.code}: Geothermal core ${gc.label} must be reachable`);
+    }
+
+    let exitFound = false;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (lvl.grid[r][c] === 'E') {
+          exitFound = true;
+          assert.ok(isReachable(c, r), `${lvl.code}: Exit tile at (${c},${r}) must be reachable after unlocking doors (${doorAt.size} doors)`);
+        }
+      }
+    }
+    assert.ok(exitFound, `${lvl.code}: must contain an exit tile E`);
+  }
+});
+
+test('Level 3 Shark Race applies Level-10 2-hit stamina & 50% speed penalty', () => {
+  const first = applySharkObstacleImpact(100);
+  assert.equal(first.staminaHp, 50);
+  assert.equal(first.slowTimer, 2.8);
+  assert.equal(first.defeated, false);
+
+  const second = applySharkObstacleImpact(first.staminaHp);
+  assert.equal(second.staminaHp, 0);
+  assert.equal(second.slowTimer, 2.8);
+  assert.equal(second.defeated, true);
+});
+
+test('Level 3 Shark Race swim speed responds to boost rings, vertical control, and 50% slow', () => {
+  const base = getSharkRaceSwimSpeed(228, 0, 0, 0);
+  const surging = getSharkRaceSwimSpeed(228, 0, 0, -1);
+  const braking = getSharkRaceSwimSpeed(228, 0, 0, 1);
+  const boosted = getSharkRaceSwimSpeed(228, 1.2, 0, 0);
+  const slowed = getSharkRaceSwimSpeed(228, 0, 2.0, 0);
+
+  assert.ok(surging > base);
+  assert.ok(braking < base);
+  assert.ok(boosted > base + 100);
+  assert.equal(slowed, base * 0.5);
+});
+
+test('Level 3 Shark Race evaluates 20s win, 2-hit defeat, shark catch, and timeout accurately', () => {
+  assert.equal(evaluateSharkRaceOutcome(12.0, 2200, 1900, 4250, 100), 'playing');
+  assert.equal(evaluateSharkRaceOutcome(3.5, 4260, 3900, 4250, 50), 'won');
+  assert.equal(evaluateSharkRaceOutcome(10.0, 2100, 1900, 4250, 0), 'lost_hits');
+  assert.equal(evaluateSharkRaceOutcome(8.0, 2100, 2090, 4250, 100), 'lost_caught');
+  assert.equal(evaluateSharkRaceOutcome(0, 4050, 3800, 4250, 100), 'lost_timeout');
+});
+
+test('Level 3 Shark Race distributes cyan boost rings evenly across left, center, and right thirds of channel', () => {
+  const channelLeft = 44;
+  const channelRight = 396;
+  const width = channelRight - channelLeft;
+  const { obstacles, boostRings } = generateSharkRaceTrack(4250, channelLeft, channelRight);
+  const kinds = new Set(obstacles.map((o) => o.kind));
+  assert.ok(kinds.has('coral'));
+  assert.ok(kinds.has('structure'));
+  assert.ok(kinds.has('mine'));
+  assert.ok(kinds.has('turbulence'));
+  assert.ok(obstacles.some((o) => o.moveAmp > 0), 'Should include moving mines/currents');
+  assert.ok(boostRings.length >= 6, 'Should include balanced cyan speed boost rings');
+  for (const o of obstacles) {
+    assert.ok(o.baseX - o.moveAmp >= channelLeft && o.baseX + o.moveAmp <= channelRight, `Obstacle ${o.id} stays inside channel`);
+  }
+
+  let leftCount = 0;
+  let centerCount = 0;
+  let rightCount = 0;
+  for (const r of boostRings) {
+    assert.ok(r.x >= channelLeft + 34 && r.x <= channelRight - 34, `Ring ${r.id} inside channel bounds`);
+    const rel = (r.x - channelLeft) / width;
+    if (rel < 0.34) leftCount++;
+    else if (rel <= 0.66) centerCount++;
+    else rightCount++;
+  }
+  assert.ok(leftCount >= 2, `Expected >=2 left-third rings, got ${leftCount}`);
+  assert.ok(centerCount >= 2, `Expected >=2 center-third rings, got ${centerCount}`);
+  assert.ok(rightCount >= 2, `Expected >=2 right-third rings, got ${rightCount}`);
+});
+
+test('Level 3 Horizontal Shark Tunnel generates bounded obstacles, currents, corals, and boost rings across vertical lanes', () => {
+  const topWall = 62;
+  const botWall = 378;
+  const tunnelH = botWall - topWall;
+  const { obstacles, boostRings, corals } = generateSharkTunnelCourse(240, 3600, topWall, botWall);
+
+  const kinds = new Set(obstacles.map((o) => o.kind));
+  assert.ok(kinds.has('jellyfish'), 'Tunnel should contain neon jellyfish obstacles');
+  assert.ok(kinds.has('rock'), 'Tunnel should contain rocky obstacles');
+  assert.ok(kinds.has('current'), 'Tunnel should contain underwater currents');
+  assert.ok(corals.length >= 15 && corals.some((c) => c.top) && corals.some((c) => !c.top), 'Tunnel should contain top and bottom corals');
+  assert.ok(boostRings.length >= 4, 'Tunnel should contain cyan boost rings');
+
+  for (const o of obstacles) {
+    assert.ok(
+      o.baseY - o.moveAmp >= topWall && o.baseY + o.moveAmp <= botWall,
+      `Tunnel obstacle ${o.id} (${o.kind}) remains inside tunnel walls`
+    );
+  }
+
+  let topCount = 0;
+  let midCount = 0;
+  let botCount = 0;
+  for (const r of boostRings) {
+    assert.ok(r.y >= topWall + 30 && r.y <= botWall - 30, `Boost ring ${r.id} stays inside tunnel walls`);
+    const rel = (r.y - topWall) / tunnelH;
+    if (rel < 0.34) topCount++;
+    else if (rel <= 0.66) midCount++;
+    else botCount++;
+  }
+  assert.ok(topCount >= 1 && midCount >= 1 && botCount >= 1, 'Boost rings cover top, center, and bottom tunnel lanes');
+});
+
+test('Level 3 Horizontal Shark Tunnel evaluates playing, caught, and finish-line victory outcomes', () => {
+  assert.equal(evaluateHorizontalSharkRaceOutcome(1200, 950, 3600), 'playing');
+  assert.equal(evaluateHorizontalSharkRaceOutcome(1200, 1180, 3600), 'caught');
+  assert.equal(evaluateHorizontalSharkRaceOutcome(3605, 3250, 3600), 'won');
+});
+
+test('Level 5 Metro Train generates pipes, electric arcs, and drones bounded to train roof', () => {
+  const trainLeft = 100;
+  const trainRight = 380;
+  const obs = generateMetroTrainCourse(3000, trainLeft, trainRight);
+  const kinds = new Set(obs.map((o) => o.kind));
+  assert.ok(kinds.has('pipe'), 'Train roof course should include low pipes');
+  assert.ok(kinds.has('arc'), 'Train roof course should include electric arcs');
+  assert.ok(kinds.has('drone'), 'Train roof course should include sweeping drones');
+  for (const o of obs) {
+    assert.ok(o.baseX - o.moveAmp >= trainLeft && o.baseX + o.moveAmp <= trainRight, `Obstacle ${o.id} stays on train roof`);
+    assert.equal(o.jumpable, true);
+  }
+  assert.equal(evaluateMetroTrainOutcome(1200, 3000, 3), 'playing');
+  assert.equal(evaluateMetroTrainOutcome(3020, 3000, 2), 'won');
+  assert.equal(evaluateMetroTrainOutcome(1500, 3000, 0), 'lost');
+});
+
+test('Level 7 Conveyor Gauntlet generates multi-directional belts, crates, lasers, and checks platform fall/goal bounds', () => {
+  const { conveyors, crates, lasers } = generateConveyorGauntlet(80, 1040, 90, 410);
+  assert.ok(conveyors.length >= 6);
+  assert.ok(conveyors.some((c) => c.vx < 0) && conveyors.some((c) => c.vx > 0) && conveyors.some((c) => Math.abs(c.vy) > 0));
+  assert.ok(crates.length >= 3);
+  assert.ok(lasers.length >= 2);
+  assert.equal(isInsidePlatformBounds(500, 250, 80, 1040, 90, 410), true);
+  assert.equal(isInsidePlatformBounds(50, 250, 80, 1040, 90, 410), false);
+  assert.equal(evaluateConveyorGauntletOutcome(500, 250, 980, 250, 36, 80, 1040, 90, 410), 'playing');
+  assert.equal(evaluateConveyorGauntletOutcome(970, 250, 980, 250, 36, 80, 1040, 90, 410), 'won');
+  assert.equal(evaluateConveyorGauntletOutcome(500, 430, 980, 250, 36, 80, 1040, 90, 410), 'fell');
+});
+
+test('Level 9 Captain Boss Battle reflects enemy electric-net shots back at Captain and tracks 3-hit victory', () => {
+  const proj = { id: 1, x: 240, y: 310, vx: -120, vy: 210, radius: 12, fromBoss: true, reflected: false };
+  assert.equal(reflectBossProjectile(proj, 500, 310, 620, 110, 74, 480), false);
+  assert.equal(reflectBossProjectile(proj, 265, 325, 620, 110, 74, 480), true);
+  assert.equal(proj.fromBoss, false);
+  assert.equal(proj.reflected, true);
+  assert.ok(proj.vx > 0 && proj.vy < 0, 'Reflected net must aim straight toward Captain');
+  assert.equal(evaluateBossBattleOutcome(3, 3), 'playing');
+  assert.equal(evaluateBossBattleOutcome(0, 2), 'won');
+  assert.equal(evaluateBossBattleOutcome(2, 0), 'lost');
+});
+
+test('persistent save uses escape_antartida_save_v1, keeps N14 unlocked by default, migrates legacy saves, and stores weapons & records', () => {
+  assert.equal(SAVE_STORAGE_KEY, 'escape_antartida_save_v1');
+  assert.equal(LEGACY_PROGRESS_STORAGE_KEY, 'operacion_antartida_progress_v1');
+  assert.equal(TOTAL_CAMPAIGN_LEVELS, 16);
+  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 13);
+
+  const def = createDefaultCampaignSave();
+  assert.equal(def.maxUnlockedIdx, 13);
+  assert.equal(def.completed.length, 16);
+
+  const legacyOnly = parseCampaignSave(null, JSON.stringify({ completed: [true, true, true], maxUnlockedIdx: 3, selectedIdx: 2 }));
+  assert.equal(legacyOnly.completed[0], true);
+  assert.equal(legacyOnly.completed[2], true);
+  assert.equal(legacyOnly.maxUnlockedIdx, 13);
+  assert.equal(legacyOnly.selectedIdx, 2);
+
+  const updated = recordLevelCompletionSave(def, 13, 42.37, 1, 5, [{ type: 'cryo_snow', ammo: 4 }]);
+  assert.equal(updated.completed[13], true);
+  assert.equal(updated.maxUnlockedIdx, 14);
+  assert.equal(updated.records['14']?.bestTimeSec, 42.4);
+  assert.equal(updated.records['14']?.minAlerts, 1);
+  assert.equal(updated.records['14']?.maxStunned, 5);
+  assert.ok(updated.weapons.unlocked.includes('cryo_snow'));
+  assert.deepEqual(updated.weapons.loadout, [{ type: 'cryo_snow', ammo: 4 }]);
+});
+
+test('N3 fishOnly armored drones reject darts and allow fish / cryo_snow stuns', () => {
+  assert.equal(canWeaponStunDrone('dart', false), true);
+  assert.equal(canWeaponStunDrone('dart', true), false);
+  assert.equal(canWeaponStunDrone('fish', true), true);
+  assert.equal(canWeaponStunDrone('cryo_snow', true), true);
+});
+
+test('Act V mechanics: cyclical snowstorms, thermal beacons, crevasse falls, magnetic harpoon pull, 4-penguin weight plates, and generator power', () => {
+  assert.ok(getSnowstormIntensity(2.0) < 0.2);
+  assert.ok(getSnowstormIntensity(10.0) > 0.5);
+  assert.equal(areAllBeaconsLit([{ lit: true }, { lit: false }, { lit: true }]), false);
+  assert.equal(areAllBeaconsLit([{ lit: true }, { lit: true }, { lit: true }]), true);
+
+  const testGrid = ['...', '.C.', '...'];
+  assert.equal(isCrevasseFall(testGrid, 72, 72, 48, 11), true);
+  assert.equal(isCrevasseFall(testGrid, 50, 72, 48, 11), false);
+  assert.equal(isCrevasseFall(testGrid, 24, 24, 48, 11), false);
+
+  const pulled = findHarpoonPullTarget(
+    100,
+    100,
+    0,
+    [
+      { id: 'far', px: 500, py: 100 },
+      { id: 'behind', px: 20, py: 100 },
+      { id: 'front', px: 240, py: 108 },
+    ],
+    300
+  );
+  assert.equal(pulled?.id, 'front');
+
+  const plates = [
+    { px: 100, py: 100 },
+    { px: 200, py: 100 },
+    { px: 100, py: 200 },
+    { px: 200, py: 200 },
+  ];
+  const allies = [
+    { x: 200, y: 105 },
+    { x: 102, y: 198 },
+    { x: 198, y: 202 },
+  ];
+  assert.equal(countActiveWeightPlates(102, 102, allies, plates), 4);
+  assert.equal(countActiveWeightPlates(350, 350, allies, plates), 3);
+
+  assert.equal(isGeneratorFullyPowered(2, 3), false);
+  assert.equal(isGeneratorFullyPowered(3, 3), true);
+});
+
+test('N13 Snowmobile Tunnel generates drills, ice blocks, poachers, boost gates and evaluates 25s outcomes', () => {
+  const { obstacles, boostGates } = generateSnowmobileTunnelCourse(240, 5200, 62, 378);
+  const kinds = new Set(obstacles.map((o) => o.kind));
+  assert.ok(kinds.has('drill'));
+  assert.ok(kinds.has('ice_block'));
+  assert.ok(kinds.has('poacher'));
+  assert.ok(boostGates.length >= 5);
+  for (const o of obstacles) {
+    assert.ok(o.baseY - o.moveAmp >= 62 && o.baseY + o.moveAmp <= 378);
+  }
+  assert.equal(evaluateSnowmobileTunnelOutcome(12.0, 2400, 5200, 3), 'playing');
+  assert.equal(evaluateSnowmobileTunnelOutcome(5.0, 5210, 5200, 1), 'won');
+  assert.equal(evaluateSnowmobileTunnelOutcome(10.0, 2400, 5200, 0), 'lost_hits');
+  assert.equal(evaluateSnowmobileTunnelOutcome(0, 4900, 5200, 2), 'lost_timeout');
+});
+
+test('N14 Sonar, N15 Volcano Magma & Thermal Shield, and N16 Dual-Gadget Armored Gates behave accurately', () => {
+  assert.equal(areAllSonarDisabled([{ disabled: true }, { disabled: false }, { disabled: true }]), false);
+  assert.equal(areAllSonarDisabled([{ disabled: true }, { disabled: true }, { disabled: true }]), true);
+
+  assert.equal(canCrossVolcanicHeat('L', true), false);
+  assert.equal(canCrossVolcanicHeat('V', false), false);
+  assert.equal(canCrossVolcanicHeat('V', true), true);
+  assert.equal(canCrossVolcanicHeat('.', false), true);
+
+  const { platforms, eruptions } = generateMagmaPlatformCourse(100, 1040, 260);
+  assert.ok(platforms.length >= 5);
+  assert.ok(eruptions.length >= 3);
+  assert.equal(evaluateMagmaPlatformOutcome(500, 1040, 2, false), 'playing');
+  assert.equal(evaluateMagmaPlatformOutcome(1050, 1040, 1, false), 'won');
+  assert.equal(evaluateMagmaPlatformOutcome(500, 1040, 2, true), 'lost');
+  assert.equal(evaluateMagmaPlatformOutcome(500, 1040, 0, false), 'lost');
+
+  const cryoNodes = [{ gateId: 1, activated: true }, { gateId: 2, activated: true }];
+  const harpoonLocks = [{ gateId: 1, activated: false }, { gateId: 2, activated: true }];
+  assert.equal(isFortressGateUnlocked(cryoNodes, harpoonLocks, 1), false);
+  assert.equal(isFortressGateUnlocked(cryoNodes, harpoonLocks, 2), true);
+});
+
