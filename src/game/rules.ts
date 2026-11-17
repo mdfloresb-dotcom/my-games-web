@@ -1499,8 +1499,8 @@ export function evaluateBossBattleOutcome(
 // =========================================================
 export const SAVE_STORAGE_KEY = 'escape_antartida_save_v1';
 export const LEGACY_PROGRESS_STORAGE_KEY = 'operacion_antartida_progress_v1';
-export const TOTAL_CAMPAIGN_LEVELS = 16;
-export const DEFAULT_MIN_UNLOCKED_IDX = 13; // N14 (Acto V) unlocked by default for testing
+export const TOTAL_CAMPAIGN_LEVELS = 20;
+export const DEFAULT_MIN_UNLOCKED_IDX = 19; // N1-N20 unlocked by default for testing
 
 export interface LevelRecord {
   bestTimeSec: number | null;
@@ -1519,6 +1519,8 @@ export interface CampaignSaveData {
   completed: boolean[];
   maxUnlockedIdx: number;
   selectedIdx: number;
+  expertModeUnlocked: boolean;
+  expertModeEnabled: boolean;
   weapons: {
     unlocked: string[];
     loadout: SavedWeaponEntry[];
@@ -1532,6 +1534,8 @@ export function createDefaultCampaignSave(totalLevels = TOTAL_CAMPAIGN_LEVELS): 
     completed: Array(totalLevels).fill(false),
     maxUnlockedIdx: Math.min(totalLevels - 1, DEFAULT_MIN_UNLOCKED_IDX),
     selectedIdx: 0,
+    expertModeUnlocked: false,
+    expertModeEnabled: false,
     weapons: {
       unlocked: [],
       loadout: [],
@@ -1580,6 +1584,9 @@ export function parseCampaignSave(
       : 0;
   const selectedIdx = Math.max(0, Math.min(maxUnlockedIdx, rawSelected));
 
+  const expertModeUnlocked = Boolean(src.expertModeUnlocked || completed[totalLevels - 1]);
+  const expertModeEnabled = expertModeUnlocked ? Boolean(src.expertModeEnabled) : false;
+
   const rawWeapons =
     src.weapons && typeof src.weapons === 'object' ? (src.weapons as Record<string, unknown>) : {};
   const unlockedWeapons = Array.isArray(rawWeapons.unlocked)
@@ -1617,6 +1624,8 @@ export function parseCampaignSave(
     completed,
     maxUnlockedIdx,
     selectedIdx,
+    expertModeUnlocked,
+    expertModeEnabled,
     weapons: {
       unlocked: unlockedWeapons,
       loadout,
@@ -1662,11 +1671,15 @@ export function recordLevelCompletionSave(
     }
   }
 
+  const expertModeUnlocked = Boolean(save.expertModeUnlocked || nextCompleted[totalLevels - 1] || levelIdx >= totalLevels - 1);
+
   return {
     version: 1,
     completed: nextCompleted,
     maxUnlockedIdx: nextMaxUnlocked,
     selectedIdx: Math.min(totalLevels - 1, levelIdx + 1),
+    expertModeUnlocked,
+    expertModeEnabled: expertModeUnlocked ? Boolean(save.expertModeEnabled) : false,
     weapons: {
       unlocked: Array.from(unlockedSet),
       loadout: cleanLoadout,
@@ -1991,4 +2004,244 @@ export function isFortressGateUnlocked(
   const harpoon = harpoonLocks.filter((l) => l.gateId === gateId);
   return cryo.length > 0 && harpoon.length > 0 && cryo.every((n) => n.activated) && harpoon.every((l) => l.activated);
 }
+
+// =========================================================
+// LEVEL 15 EXPANSION + LEVELS 17, 18, 19 PURE ACT V MECHANICS
+// =========================================================
+export function areAllCoolingValvesActive(valves: Array<{ activated: boolean }>): boolean {
+  return valves.length > 0 && valves.every((v) => v.activated);
+}
+
+export function isFireGeyserActive(
+  elapsedSec: number,
+  phaseOffset = 0,
+  activeDur = 1.25,
+  period = 3.2
+): { active: boolean; warning: boolean; cyclePos: number } {
+  const safePeriod = Math.max(0.5, period);
+  const cyc = (((elapsedSec + phaseOffset) % safePeriod) + safePeriod) % safePeriod;
+  const active = cyc < activeDur;
+  const warning = !active && cyc >= safePeriod - 0.65;
+  return { active, warning, cyclePos: cyc / safePeriod };
+}
+
+export interface GliderRadarTower {
+  id: number;
+  x: number;
+  y: number;
+  radius: number;
+  disabled: boolean;
+}
+
+export interface GliderAirHazard {
+  id: number;
+  kind: 'wind_gust' | 'flare';
+  x: number;
+  y: number;
+  baseY: number;
+  w?: number;
+  h?: number;
+  vx?: number;
+  vy?: number;
+  radius: number;
+  moveAmp: number;
+  moveFreq: number;
+  phase: number;
+  tracking?: boolean;
+  trackRate?: number;
+  orbitTowerId?: number;
+  orbitAngle?: number;
+  orbitRadius?: number;
+  orbitSpeed?: number;
+}
+
+export interface GliderBoostRing {
+  id: number;
+  x: number;
+  y: number;
+  radius: number;
+  collected: boolean;
+}
+
+export function generateGliderRadarCourse(
+  startX = 160,
+  runwayEnd = 4600,
+  skyTop = 64,
+  skyBot = 376
+): {
+  towers: GliderRadarTower[];
+  hazards: GliderAirHazard[];
+  boostRings: GliderBoostRing[];
+} {
+  const skyH = skyBot - skyTop;
+  const towers: GliderRadarTower[] = [
+    { id: 1, x: Math.round(startX + (runwayEnd - startX) * 0.28), y: Math.round(skyTop + skyH * 0.34), radius: 26, disabled: false },
+    { id: 2, x: Math.round(startX + (runwayEnd - startX) * 0.58), y: Math.round(skyTop + skyH * 0.68), radius: 26, disabled: false },
+    { id: 3, x: Math.round(startX + (runwayEnd - startX) * 0.88), y: Math.round(skyTop + skyH * 0.42), radius: 26, disabled: false },
+  ];
+
+  const hazards: GliderAirHazard[] = [];
+  let seed = 17179;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+
+  let hid = 1;
+  for (let x = startX + 310; x < runwayEnd - 170; x += 170) {
+    const isWind = rand() < 0.44;
+    if (isWind) {
+      const y = skyTop + 44 + rand() * (skyH - 88);
+      hazards.push({
+        id: hid++,
+        kind: 'wind_gust',
+        x,
+        y,
+        baseY: y,
+        w: 124,
+        h: 64,
+        vx: -125,
+        vy: (rand() < 0.5 ? -1 : 1) * (155 + rand() * 50),
+        radius: 30,
+        moveAmp: 0,
+        moveFreq: 0,
+        phase: rand() * Math.PI * 2,
+      });
+    } else {
+      const margin = 46;
+      const baseY = skyTop + margin + rand() * (skyH - margin * 2);
+      const maxAmp = Math.min(baseY - (skyTop + 26), (skyBot - 26) - baseY, 76);
+      hazards.push({
+        id: hid++,
+        kind: 'flare',
+        x,
+        y: baseY,
+        baseY,
+        radius: 19,
+        moveAmp: Math.max(18, maxAmp),
+        moveFreq: 2.5 + rand() * 0.9,
+        phase: rand() * Math.PI * 2,
+        tracking: true,
+        trackRate: 56 + rand() * 24,
+      });
+    }
+  }
+
+  // Radar tower perimeter defenses (2 orbiting flares per tower that deactivate when tower goes offline)
+  for (const tw of towers) {
+    const orbitR = 48;
+    for (let k = 0; k < 2; k++) {
+      const ang = k * Math.PI + tw.id * 0.6;
+      hazards.push({
+        id: hid++,
+        kind: 'flare',
+        x: tw.x + Math.cos(ang) * orbitR,
+        y: tw.y + Math.sin(ang) * orbitR,
+        baseY: tw.y,
+        radius: 14,
+        moveAmp: orbitR,
+        moveFreq: 2.35,
+        phase: ang,
+        orbitTowerId: tw.id,
+        orbitAngle: ang,
+        orbitRadius: orbitR,
+        orbitSpeed: 2.35,
+      });
+    }
+  }
+
+  const boostRings: GliderBoostRing[] = [];
+  let rid = 1;
+  for (let x = startX + 460; x < runwayEnd - 300; x += 620) {
+    const laneRel = rid % 3 === 1 ? 0.25 : rid % 3 === 2 ? 0.72 : 0.48;
+    boostRings.push({
+      id: rid++,
+      x,
+      y: Math.round(skyTop + 34 + (skyH - 68) * laneRel),
+      radius: 24,
+      collected: false,
+    });
+  }
+
+  return { towers, hazards, boostRings };
+}
+
+export type GliderRadarOutcome = 'playing' | 'won' | 'lost_hits' | 'lost_timeout';
+
+export function evaluateGliderRadarOutcome(
+  timeLeft: number,
+  disabledTowers: number,
+  requiredTowers: number,
+  hp: number
+): GliderRadarOutcome {
+  if (hp <= 0) return 'lost_hits';
+  if (disabledTowers >= requiredTowers) return 'won';
+  if (timeLeft <= 0) return 'lost_timeout';
+  return 'playing';
+}
+
+export function areAllCryoLabSystemsCleared(
+  fans: Array<{ frozen: boolean }>,
+  levers: Array<{ activated: boolean }>
+): boolean {
+  return (
+    fans.length > 0 &&
+    levers.length > 0 &&
+    fans.every((f) => f.frozen) &&
+    levers.every((l) => l.activated)
+  );
+}
+
+export function getGlacierConvoyWindPush(elapsedSec: number): { vx: number; vy: number } {
+  const gust = 0.55 + 0.45 * Math.sin(elapsedSec * 0.85);
+  return {
+    vx: -28 * gust,
+    vy: Math.sin(elapsedSec * 1.15) * 44 * gust,
+  };
+}
+
+export function isTurretLaserFiring(
+  elapsedSec: number,
+  phaseOffset = 0,
+  activeDur = 1.4,
+  period = 3.4
+): { active: boolean; warning: boolean } {
+  const safePeriod = Math.max(0.5, period);
+  const cyc = (((elapsedSec + phaseOffset) % safePeriod) + safePeriod) % safePeriod;
+  const active = cyc < activeDur;
+  const warning = !active && cyc >= safePeriod - 0.7;
+  return { active, warning };
+}
+
+// =========================================================
+// LEVEL 19 EXTENSION, LEVEL 20 FINAL BOSS & EXPERT MODE
+// =========================================================
+export function getExpertEnemySpeedMultiplier(expertEnabled: boolean): number {
+  return expertEnabled ? 1.28 : 1.0;
+}
+
+export function isConvoyGateUnlocked(collectedCardIds: string[], requiredCount = 2): boolean {
+  return new Set(collectedCardIds).size >= requiredCount;
+}
+
+export function canCrossBurningSteam(hasThermalShield: boolean): boolean {
+  return Boolean(hasThermalShield);
+}
+
+export type IcebreakerBossPhase = 'A' | 'B' | 'C';
+
+export function getIcebreakerBossPhase(hp: number, maxHp = 100): IcebreakerBossPhase {
+  const pct = maxHp > 0 ? hp / maxHp : 0;
+  if (pct > 0.65) return 'A';
+  if (pct > 0.30) return 'B';
+  return 'C';
+}
+
+export function evaluateIcebreakerBossOutcome(bossHp: number, playerHp: number): 'playing' | 'won' | 'lost' {
+  if (bossHp <= 0) return 'won';
+  if (playerHp <= 0) return 'lost';
+  return 'playing';
+}
+
+
 

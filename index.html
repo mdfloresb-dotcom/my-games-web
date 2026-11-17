@@ -713,7 +713,7 @@
 
     .level-selector {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 5px;
     }
 
@@ -1180,6 +1180,48 @@
       border-color: rgba(56, 189, 248, 0.65);
     }
 
+    .title-secondary-row {
+      flex-wrap: wrap;
+    }
+
+    .btn-expert-mode {
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      padding: 10px 13px;
+      background: rgba(15, 23, 42, 0.72);
+      color: #94A3B8;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: not-allowed;
+      opacity: 0.62;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .btn-expert-mode.unlocked {
+      cursor: pointer;
+      opacity: 1;
+      color: #FDE68A;
+      border-color: rgba(245, 158, 11, 0.55);
+      background: rgba(120, 53, 15, 0.35);
+    }
+
+    .btn-expert-mode.unlocked:hover {
+      background: rgba(180, 83, 9, 0.45);
+      border-color: rgba(251, 191, 36, 0.85);
+    }
+
+    .btn-expert-mode.active {
+      color: #FFE4E6;
+      border-color: #F43F5E;
+      background: linear-gradient(135deg, rgba(190, 18, 60, 0.68), rgba(244, 63, 94, 0.48));
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.42);
+    }
+
     .btn-install-pwa {
       border: 1px solid rgba(56, 189, 248, 0.36);
       border-radius: 12px;
@@ -1386,7 +1428,7 @@
         font-size: 10px;
       }
       .level-selector {
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(10, 1fr);
         gap: 4px;
       }
       .level-tab {
@@ -1728,7 +1770,7 @@
         <div>
           <h1 class="title-heading">Operación Antártida: Escape del Zoo</h1>
           <p class="title-sub" style="margin-top: 10px;">
-            Campaña de 16 misiones en 5 actos: escapa del zoo, cruza la ciudad, aborda el buque, navega al sur y conquista las 6 misiones de la Antártida.
+            Campaña de 20 misiones en 5 actos: escapa del zoo, cruza la ciudad, aborda el buque, navega al sur y conquista las 10 misiones de la Antártida.
           </p>
         </div>
       </div>
@@ -1756,6 +1798,10 @@
             <button id="select-lvl-14" class="level-tab" type="button" data-level="13"><span class="lvl-num">N14</span><span class="lvl-short">Submarino</span></button>
             <button id="select-lvl-15" class="level-tab" type="button" data-level="14"><span class="lvl-num">N15</span><span class="lvl-short">Volcán</span></button>
             <button id="select-lvl-16" class="level-tab" type="button" data-level="15"><span class="lvl-num">N16</span><span class="lvl-short">Fortaleza</span></button>
+            <button id="select-lvl-17" class="level-tab" type="button" data-level="16"><span class="lvl-num">N17</span><span class="lvl-short">Pista</span></button>
+            <button id="select-lvl-18" class="level-tab" type="button" data-level="17"><span class="lvl-num">N18</span><span class="lvl-short">CrioLab</span></button>
+            <button id="select-lvl-19" class="level-tab" type="button" data-level="18"><span class="lvl-num">N19</span><span class="lvl-short">Convoy</span></button>
+            <button id="select-lvl-20" class="level-tab" type="button" data-level="19"><span class="lvl-num">N20</span><span class="lvl-short">Núcleo</span></button>
           </div>
         </div>
 
@@ -1798,6 +1844,9 @@
               </svg>
               <span id="btn-install-pwa-lbl">Instalar App</span>
             </button>
+            <button id="btn-expert-mode" class="btn-expert-mode" type="button" aria-pressed="false" title="Se desbloquea al completar el Nivel 20">
+              <span id="btn-expert-mode-lbl">Modo Experto 🔒</span>
+            </button>
           </div>
         </div>
 
@@ -1817,7 +1866,7 @@
       </div>
       <h2 id="guide-title" style="margin: 0 0 6px; font-size: 22px; font-weight: 800;">¿De qué trata y qué puede hacer el pingüino?</h2>
       <p style="margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.45;">
-        Eres un pingüino espía fugitivo. Supera 16 zonas repartidas en 5 actos (Zoológico, Ciudad, Barco, Océano y La Antártida) sin que te capturen.
+        Eres un pingüino espía fugitivo. Supera 20 zonas repartidas en 5 actos (Zoológico, Ciudad, Barco, Océano y La Antártida) sin que te capturen.
       </p>
 
       <div class="guide-grid">
@@ -1840,7 +1889,7 @@
           <h3>Cómo Abrir Compuertas</h3>
           <ul>
             <li><strong>Tarjetas, Cables y Botones:</strong> recoge llaves, pisa nodos o cruza antes que cierre.</li>
-            <li><strong>Antártida (N11-N16):</strong> enciende balizas, rescata pingüinos, supera túneles, desactiva sonares, cruza volcanes y abre la fortaleza.</li>
+            <li><strong>Antártida (N11-N20):</strong> enciende balizas, rescata pingüinos, pilota planeadores, abre el convoy y derrota a la Mecha Araña en el Núcleo.</li>
           </ul>
         </div>
         <div class="guide-card">
@@ -2752,7 +2801,7 @@
       // =========================================================
       const SAVE_STORAGE_KEY = 'escape_antartida_save_v1';
       const LEGACY_PROGRESS_STORAGE_KEY = 'operacion_antartida_progress_v1';
-      const DEFAULT_MIN_UNLOCKED_IDX = 13; // N14 unlocked by default for testing
+      const DEFAULT_MIN_UNLOCKED_IDX = 19; // N20 unlocked by default for testing
 
       function createDefaultCampaignSave(totalLevels) {
         return {
@@ -2761,7 +2810,9 @@
           maxUnlockedIdx: Math.min(totalLevels - 1, DEFAULT_MIN_UNLOCKED_IDX),
           selectedIdx: 0,
           weapons: { unlocked: [], loadout: [] },
-          records: {}
+          records: {},
+          expertModeUnlocked: false,
+          expertModeEnabled: false
         };
       }
 
@@ -2811,7 +2862,9 @@
             };
           });
         }
-        return { version: 1, completed, maxUnlockedIdx, selectedIdx, weapons: { unlocked, loadout }, records };
+        const expertModeUnlocked = Boolean(src.expertModeUnlocked) || Boolean(completed[totalLevels - 1]);
+        const expertModeEnabled = expertModeUnlocked && Boolean(src.expertModeEnabled);
+        return { version: 1, completed, maxUnlockedIdx, selectedIdx, weapons: { unlocked, loadout }, records, expertModeUnlocked, expertModeEnabled };
       }
 
       function recordLevelCompletionSave(save, levelIdx, elapsedSec, alertsTriggered, guardsStunned, currentWeapons, totalLevels) {
@@ -2839,13 +2892,16 @@
             if (w.ammo > 0) cleanLoadout.push({ type: w.type, ammo: Math.floor(w.ammo) });
           }
         });
+        const expertModeUnlocked = Boolean(save.expertModeUnlocked) || Boolean(nextCompleted[totalLevels - 1]);
         return {
           version: 1,
           completed: nextCompleted,
           maxUnlockedIdx: nextMaxUnlocked,
           selectedIdx: Math.min(totalLevels - 1, levelIdx + 1),
           weapons: { unlocked: Array.from(unlockedSet), loadout: cleanLoadout },
-          records: { ...save.records, [key]: nextRec }
+          records: { ...save.records, [key]: nextRec },
+          expertModeUnlocked,
+          expertModeEnabled: expertModeUnlocked && Boolean(save.expertModeEnabled)
         };
       }
 
@@ -3025,6 +3081,159 @@
         const cryo = cryoNodes.filter((n) => n.gateId === gateId);
         const harpoon = harpoonLocks.filter((l) => l.gateId === gateId);
         return cryo.length > 0 && harpoon.length > 0 && cryo.every((n) => n.activated) && harpoon.every((l) => l.activated);
+      }
+
+      function areAllCoolingValvesActive(valves) {
+        return valves.length > 0 && valves.every((v) => v.activated);
+      }
+
+      function isFireGeyserActive(elapsedSec, phaseOffset = 0, activeDur = 1.25, period = 3.2) {
+        const safePeriod = Math.max(0.5, period);
+        const cyc = (((elapsedSec + phaseOffset) % safePeriod) + safePeriod) % safePeriod;
+        const active = cyc < activeDur;
+        const warning = !active && cyc >= safePeriod - 0.65;
+        return { active, warning, cyclePos: cyc / safePeriod };
+      }
+
+      function generateGliderRadarCourse(startX = 160, runwayEnd = 4600, skyTop = 64, skyBot = 376) {
+        const skyH = skyBot - skyTop;
+        const towers = [
+          { id: 1, x: Math.round(startX + (runwayEnd - startX) * 0.28), y: Math.round(skyTop + skyH * 0.34), radius: 26, disabled: false },
+          { id: 2, x: Math.round(startX + (runwayEnd - startX) * 0.58), y: Math.round(skyTop + skyH * 0.68), radius: 26, disabled: false },
+          { id: 3, x: Math.round(startX + (runwayEnd - startX) * 0.88), y: Math.round(skyTop + skyH * 0.42), radius: 26, disabled: false }
+        ];
+        const hazards = [];
+        let seed = 17179;
+        const rand = () => {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+        let hid = 1;
+        for (let x = startX + 300; x < runwayEnd - 160; x += 170) {
+          if (rand() < 0.44) {
+            const y = skyTop + 46 + rand() * (skyH - 92);
+            hazards.push({
+              id: hid++,
+              kind: 'wind_gust',
+              x,
+              y,
+              baseY: y,
+              w: 124,
+              h: 60,
+              vx: -125,
+              vy: (rand() < 0.5 ? -1 : 1) * (155 + rand() * 50),
+              radius: 30,
+              moveAmp: 0,
+              moveFreq: 0,
+              phase: rand() * Math.PI * 2
+            });
+          } else {
+            const margin = 46;
+            const baseY = skyTop + margin + rand() * (skyH - margin * 2);
+            const maxAmp = Math.min(baseY - (skyTop + 26), (skyBot - 26) - baseY, 78);
+            const tracking = hid % 2 === 1;
+            hazards.push({
+              id: hid++,
+              kind: 'flare',
+              x,
+              y: baseY,
+              baseY,
+              radius: 19,
+              moveAmp: Math.max(18, maxAmp),
+              moveFreq: 2.6 + rand() * 0.9,
+              phase: rand() * Math.PI * 2,
+              tracking,
+              trackRate: tracking ? 56 + rand() * 24 : 0
+            });
+          }
+        }
+        // Defense flares orbiting each of the 3 radar towers (demands tighter precision approach)
+        for (let tIdx = 0; tIdx < towers.length; tIdx++) {
+          const tw = towers[tIdx];
+          for (let d = 0; d < 2; d++) {
+            hazards.push({
+              id: hid++,
+              kind: 'flare',
+              x: tw.x,
+              y: tw.y,
+              baseY: tw.y,
+              radius: 15,
+              moveAmp: 48,
+              moveFreq: 2.4,
+              phase: d * Math.PI,
+              orbitTowerId: tw.id,
+              orbitAngle: d * Math.PI + tIdx * 0.7,
+              orbitRadius: 48,
+              orbitSpeed: 2.35
+            });
+          }
+        }
+        const boostRings = [];
+        let rid = 1;
+        for (let x = startX + 460; x < runwayEnd - 300; x += 620) {
+          const laneRel = rid % 3 === 1 ? 0.25 : rid % 3 === 2 ? 0.72 : 0.48;
+          boostRings.push({
+            id: rid++,
+            x,
+            y: Math.round(skyTop + 34 + (skyH - 68) * laneRel),
+            radius: 24,
+            collected: false
+          });
+        }
+        return { towers, hazards, boostRings };
+      }
+
+      function evaluateGliderRadarOutcome(timeLeft, disabledTowers, requiredTowers, hp) {
+        if (hp <= 0) return 'lost_hits';
+        if (disabledTowers >= requiredTowers) return 'won';
+        if (timeLeft <= 0) return 'lost_timeout';
+        return 'playing';
+      }
+
+      function areAllCryoLabSystemsCleared(fans, levers) {
+        return fans.length > 0 && levers.length > 0 && fans.every((f) => f.frozen) && levers.every((l) => l.activated);
+      }
+
+      function getGlacierConvoyWindPush(elapsedSec) {
+        const gust = 0.55 + 0.45 * Math.sin(elapsedSec * 0.85);
+        return {
+          vx: -28 * gust,
+          vy: Math.sin(elapsedSec * 1.15) * 44 * gust
+        };
+      }
+
+      function isTurretLaserFiring(elapsedSec, phaseOffset = 0, activeDur = 1.4, period = 3.4) {
+        const safePeriod = Math.max(0.5, period);
+        const cyc = (((elapsedSec + phaseOffset) % safePeriod) + safePeriod) % safePeriod;
+        const active = cyc < activeDur;
+        const warning = !active && cyc >= safePeriod - 0.7;
+        return { active, warning };
+      }
+
+      function getExpertEnemySpeedMultiplier(expertEnabled) {
+        return expertEnabled ? 1.28 : 1.0;
+      }
+
+      function isConvoyGateUnlocked(collectedKeycards, requiredCount = 2) {
+        return collectedKeycards >= requiredCount;
+      }
+
+      function canCrossBurningSteam(hasThermalShield) {
+        return Boolean(hasThermalShield);
+      }
+
+      function getIcebreakerBossPhase(bossHp, bossMaxHp = 100) {
+        if (bossMaxHp <= 0) return 'C';
+        const pct = (bossHp / bossMaxHp) * 100;
+        if (pct > 65) return 'A';
+        if (pct > 30) return 'B';
+        return 'C';
+      }
+
+      function evaluateIcebreakerBossOutcome(bossHp, playerHp) {
+        if (playerHp <= 0) return 'lost';
+        if (bossHp <= 0) return 'won';
+        return 'playing';
       }
 
       // =========================================================
@@ -3285,8 +3494,10 @@
 
           const act = levelIdx <= 2 ? 0 : (levelIdx <= 5 ? 1 : (levelIdx <= 8 ? 2 : (levelIdx <= 9 ? 3 : 4)));
           const baseBpms = [102, 116, 110, 124, 114];
-          const boostBpms = [34, 32, 36, 30, 30];
-          const bpm = baseBpms[act] + clamp(chaseIntensity, 0, 1) * boostBpms[act];
+          const boostBpms = [34, 32, 36, 30, 32];
+          const normalBoost = clamp(chaseIntensity, 0, 1) * boostBpms[act];
+          const phaseCBoost = Math.max(0, chaseIntensity - 1) * 48;
+          const bpm = baseBpms[act] + normalBoost + phaseCBoost;
           const stepsPerSec = (bpm / 60) * 4;
           this.stepAcc = Math.min(2, this.stepAcc + dt * stepsPerSec);
 
@@ -3301,6 +3512,7 @@
         triggerMusicStep(act, s, chase) {
           const bus = this.musicGain;
           const isChasing = chase > 0.35;
+          const isOverdrive = chase > 1.05;
 
           if (act === 0) {
             // Acto I: Zoo Stealth (Spy minor bass + marimba pluck)
@@ -3335,13 +3547,13 @@
             if (s % 4 === 0) this.tone(115, 45, 0.12, 'sine', 0.18, 0, bus);
             if (s % 4 === 2 || isChasing) this.noiseHit(0.04, 4800, isChasing ? 0.06 : 0.038, bus);
           } else {
-            // Acto V: Polar Aurora Crystalline Synth (shimmering bells + icy bass)
+            // Acto V: Polar Aurora Crystalline Synth (shimmering bells + icy bass + Phase C overdrive)
             const bass = [73.4, 0, 146.8, 0, 87.3, 0, 174.6, 0, 98.0, 0, 196.0, 0, 82.4, 0, 164.8, 0];
             const crystal = [587.3, 0, 739.9, 880.0, 0, 659.2, 0, 587.3, 783.9, 0, 880.0, 0, 659.2, 739.9, 587.3, 0];
-            if (bass[s]) this.tone(bass[s], bass[s], 0.16, 'triangle', 0.12, 0, bus);
-            if (crystal[s]) this.tone(crystal[s], crystal[s] * 1.004, 0.2, 'sine', 0.075, 0, bus);
-            if (s % 4 === 0) this.tone(98, 42, 0.11, 'sine', 0.15, 0, bus);
-            if (s % 4 === 2 || (isChasing && s % 2 === 1)) this.noiseHit(0.038, 6400, isChasing ? 0.06 : 0.034, bus);
+            if (bass[s]) this.tone(bass[s], bass[s], 0.16, isOverdrive ? 'sawtooth' : 'triangle', isOverdrive ? 0.14 : 0.12, 0, bus);
+            if (crystal[s]) this.tone(crystal[s], crystal[s] * 1.004, 0.2, isOverdrive ? 'square' : 'sine', 0.075, 0, bus);
+            if (s % 4 === 0 || (isOverdrive && s % 2 === 0)) this.tone(isOverdrive ? 115 : 98, 42, 0.11, 'sine', 0.15, 0, bus);
+            if (s % 4 === 2 || (isChasing && s % 2 === 1)) this.noiseHit(0.038, 6400, isOverdrive ? 0.08 : (isChasing ? 0.06 : 0.034), bus);
           }
         }
 
@@ -5815,49 +6027,62 @@
           act: 'ACTO V · LA ANTÁRTIDA',
           name: 'Nivel 15 · Volcán Subglacial y Magma',
           theme: 'arctic_volcano',
-          reactionBoost: 1.55,
+          reactionBoost: 1.58,
           grid: [
-            // 68 cols x 36 rows (Río de lava 'L' en cols 49..51, puente 'V' en filas 17..19 desbloqueado por subjuego 'magma_platforms')
-            '####################################################################',
-            '#.....................#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#.P...................#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#......####...........#.....####....####.........LLL........#......#',
-            '#......####...........#.....####....####.........LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#....IIIIII...........#......XX......XX..........LLL........#......#',
-            '#....IIIIII...........#......XX......XX..........LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#...........##........#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#.....................#..........................VVV........#..EEE.#',
-            '#.....................#..........................VVV........D..EEE.#',
-            '#.....................#..........................VVV........#..EEE.#',
-            '#...........##........#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#....IIIIII...........#......XX......XX..........LLL........#......#',
-            '#....IIIIII...........#......XX......XX..........LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#......####...........#.....####....####.........LLL........#......#',
-            '#......####...........#.....####....####.........LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#................................................LLL........#......#',
-            '#.....................#..........................LLL........#......#',
-            '####################################################################'
+            // 110 cols x 36 rows (Oeste 0..51 intacto | Puente V cols 49..51 | Compuerta Escudo col 56 | Laberinto Puentes Magma cols 57..99 | Compuerta Enfriamiento col 100 | Salida 104..106)
+            '##############################################################################################################',
+            '#.....................#..........................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.P...................#..........................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#......####...........#.....####....####.........LLL....#LLLLLLLLLLLLLLLLLLL..............LLLLLLLLLL#........#',
+            '#......####...........#.....####....####.........LLL....#............LLLLLLL..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#................................................LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#................................................LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#....IIIIII...........#......XX......XX..........LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#....IIIIII...........#......XX......XX..........LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#...........##........#..........................LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#..................................VVV......#........#',
+            '#.....................#..........................VVV....#..................................VVV......#...EEE..#',
+            '#.....................#..........................VVV....D..................................VVV......D...EEE..#',
+            '#.....................#..........................VVV....#..................................VVV......#...EEE..#',
+            '#...........##........#..........................LLL....#..................................VVV......#........#',
+            '#.....................#..........................LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#....IIIIII...........#......XX......XX..........LLL....#............LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#....IIIIII...........#......XX......XX..........LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#................................................LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#................................................LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#......####...........#.....####....####.........LLL....#................VVV..............LLLLLLLLLL#........#',
+            '#......####...........#.....####....####.........LLL....#................LLL..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#............LLLLLLL..............LLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#LLLLLLLLLLLLLLLLLLL..............LLLLLLLLLL#........#',
+            '#................................................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#................................................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '#.....................#..........................LLL....#LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL#........#',
+            '##############################################################################################################'
           ],
           spawn: { x: 2.5, y: 3.5 },
           doors: [
-            { col: 60, row: 18, type: 'thermal_shield', label: 'Compuerta Escudo Térmico' }
+            { col: 56, row: 18, type: 'thermal_shield', label: 'Compuerta Escudo Térmico' },
+            { col: 100, row: 18, type: 'cooling_valves', label: 'Compuerta Válvulas de Enfriamiento' }
+          ],
+          coolingValves: [
+            { id: 'cv1', x: 84.5, y: 9.5, label: 'Válvula de Enfriamiento Norte' },
+            { id: 'cv2', x: 84.5, y: 27.5, label: 'Válvula de Enfriamiento Sur' }
+          ],
+          fireGeysers: [
+            { id: 'fg1', x: 64.5, y: 18.5, radius: 34, phaseOffset: 0.2, activeDur: 1.25, period: 3.2 },
+            { id: 'fg2', x: 71.0, y: 13.5, radius: 30, phaseOffset: 1.1, activeDur: 1.25, period: 3.2 },
+            { id: 'fg3', x: 71.0, y: 23.5, radius: 30, phaseOffset: 2.1, activeDur: 1.25, period: 3.2 },
+            { id: 'fg4', x: 78.5, y: 18.5, radius: 34, phaseOffset: 0.8, activeDur: 1.3, period: 3.1 },
+            { id: 'fg5', x: 87.5, y: 18.5, radius: 34, phaseOffset: 2.2, activeDur: 1.3, period: 3.1 },
+            { id: 'fg6', x: 96.5, y: 18.5, radius: 32, phaseOffset: 1.5, activeDur: 1.2, period: 3.0 }
           ],
           subgameZones: [
             { id: 'l15-magma-bridge', kind: 'magma_platforms', x: 45.5, y: 18.5, radius: 36, label: 'Puente Volcánico (Escudo Térmico)' }
@@ -5867,20 +6092,25 @@
             { kind: 'aurora_crystal', x: 35.5, y: 18.5 },
             { kind: 'steam_pipe', x: 25.5, y: 14.5 },
             { kind: 'steam_pipe', x: 43.5, y: 24.5 },
+            { kind: 'steam_pipe', x: 71.5, y: 18.5 },
+            { kind: 'steam_pipe', x: 88.5, y: 18.5 },
             { kind: 'crevasse_crack', x: 18.5, y: 27.5 },
             { kind: 'crevasse_crack', x: 41.5, y: 8.5 },
             { kind: 'strobe_light', x: 46.5, y: 16.5 },
-            { kind: 'strobe_light', x: 58.5, y: 18.5 }
+            { kind: 'strobe_light', x: 55.5, y: 18.5 },
+            { kind: 'strobe_light', x: 99.5, y: 18.5 }
           ],
           pickups: [
-            { id: 'l15-cryo', kind: 'gadget', weapon: 'cryo_snow', ammo: 10, x: 5.5, y: 18.5, label: 'Cañón de Nieve Criogénica' },
-            { id: 'l15-harpoon', kind: 'gadget', weapon: 'harpoon', ammo: 8, x: 29.5, y: 29.5, label: 'Arpón Magnético' }
+            { id: 'l15-cryo', kind: 'gadget', weapon: 'cryo_snow', ammo: 12, x: 5.5, y: 18.5, label: 'Cañón de Nieve Criogénica' },
+            { id: 'l15-harpoon', kind: 'gadget', weapon: 'harpoon', ammo: 10, x: 29.5, y: 29.5, label: 'Arpón Magnético' },
+            { id: 'l15-cryo-east', kind: 'gadget', weapon: 'cryo_snow', ammo: 8, x: 60.5, y: 18.5, label: 'Recarga Criogénica Este' }
           ],
           vehicles: [],
           cameras: [
             { x: 19.5, y: 2.5, baseAngle: Math.PI * 0.75, sweep: 0.65, speed: 1.5, range: 245, fov: 0.58 },
             { x: 46.5, y: 14.5, baseAngle: Math.PI * 0.65, sweep: 0.6, speed: 1.5, range: 235, fov: 0.58 },
-            { x: 58.5, y: 13.5, baseAngle: Math.PI * 0.72, sweep: 0.62, speed: 1.5, range: 235, fov: 0.58 }
+            { x: 67.5, y: 6.5, baseAngle: Math.PI * 0.72, sweep: 0.62, speed: 1.55, range: 235, fov: 0.58 },
+            { x: 98.5, y: 16.5, baseAngle: Math.PI * 0.9, sweep: 0.55, speed: 1.6, range: 235, fov: 0.58 }
           ],
           drones: [
             {
@@ -5905,6 +6135,30 @@
                 { x: 44.5, y: 26.5 },
                 { x: 44.5, y: 32.5 },
                 { x: 25.5, y: 32.5 }
+              ]
+            },
+            {
+              name: 'Dron Puente de Magma Este',
+              speed: 172,
+              range: 215,
+              fov: 0.8,
+              waypoints: [
+                { x: 69.5, y: 16.5 },
+                { x: 89.5, y: 16.5 },
+                { x: 89.5, y: 19.5 },
+                { x: 69.5, y: 19.5 }
+              ]
+            },
+            {
+              name: 'Dron Compuerta Enfriamiento',
+              speed: 176,
+              range: 220,
+              fov: 0.82,
+              waypoints: [
+                { x: 94.5, y: 16.5 },
+                { x: 99.5, y: 16.5 },
+                { x: 99.5, y: 19.5 },
+                { x: 94.5, y: 19.5 }
               ]
             }
           ],
@@ -5934,15 +6188,41 @@
               ]
             },
             {
-              name: 'Élite Puente Térmico',
+              name: 'Élite Pasarela Magma',
               isElite: true,
-              speed: 142,
-              chaseSpeed: 218,
+              speed: 146,
+              chaseSpeed: 222,
               waypoints: [
-                { x: 53.5, y: 12.5 },
                 { x: 58.5, y: 12.5 },
-                { x: 58.5, y: 24.5 },
-                { x: 53.5, y: 24.5 }
+                { x: 66.5, y: 12.5 },
+                { x: 66.5, y: 24.5 },
+                { x: 58.5, y: 24.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Térmico Norte',
+              isPoacher: true,
+              isThermalHunter: true,
+              speed: 148,
+              chaseSpeed: 224,
+              waypoints: [
+                { x: 78.5, y: 6.5 },
+                { x: 87.5, y: 6.5 },
+                { x: 87.5, y: 12.5 },
+                { x: 78.5, y: 12.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Térmico Sur',
+              isPoacher: true,
+              isThermalHunter: true,
+              speed: 148,
+              chaseSpeed: 224,
+              waypoints: [
+                { x: 78.5, y: 24.5 },
+                { x: 87.5, y: 24.5 },
+                { x: 87.5, y: 30.5 },
+                { x: 78.5, y: 30.5 }
               ]
             }
           ]
@@ -6167,6 +6447,882 @@
               ]
             }
           ]
+        },
+        {
+          id: 16,
+          code: 'N17',
+          act: 'ACTO V · LA ANTÁRTIDA',
+          name: 'Nivel 17 · Base Aérea y Pista de Hielo',
+          theme: 'arctic_airbase',
+          snowstorm: true,
+          windPush: true,
+          windMultiplier: 0.85,
+          stormIntensityBoost: 1.35,
+          guardFovBoost: 0.12,
+          reactionBoost: 1.72,
+          grid: [
+            // 76 cols x 38 rows (Pista de aterrizaje ',' en filas 15..22, hangares y aviones estacionados, muro hangar col 65, salida 69..71)
+            '############################################################################',
+            '#................................................................#.........#',
+            '#................................................................#.........#',
+            '#...........####............................####.................#.........#',
+            '#...........####............................####.................#.........#',
+            '#................................................................#.........#',
+            '#.....................XX............................XX...........#.........#',
+            '#.....................XX............................XX...........#.........#',
+            '#................................................................#.........#',
+            '#......IIIIII......................................IIIIII........#.........#',
+            '#......IIIIII......................................IIIIII........#.........#',
+            '#................................................................#.........#',
+            '#................................................................#.........#',
+            '#...............####..................####.......................#.........#',
+            '#................................................................#.........#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#.........#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#.........#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#...EEE...#',
+            '#.P.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.D...EEE...#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#...EEE...#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#.........#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#.........#',
+            '#...,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,.#.........#',
+            '#................................................................#.........#',
+            '#...............####..................####.......................#.........#',
+            '#................................................................#.........#',
+            '#................................................................#.........#',
+            '#......IIIIII......................................IIIIII........#.........#',
+            '#......IIIIII......................................IIIIII........#.........#',
+            '#................................................................#.........#',
+            '#.....................XX............................XX...........#.........#',
+            '#.....................XX............................XX...........#.........#',
+            '#................................................................#.........#',
+            '#...........####............................####.................#.........#',
+            '#...........####............................####.................#.........#',
+            '#................................................................#.........#',
+            '#................................................................#.........#',
+            '############################################################################'
+          ],
+          spawn: { x: 2.5, y: 18.5 },
+          doors: [
+            { col: 65, row: 18, type: 'hangar', label: 'Compuerta Hangar Aéreo' }
+          ],
+          subgameZones: [
+            { id: 'l17-glider-radar', kind: 'glider_radar', x: 58.5, y: 18.5, radius: 38, label: 'Despegar Planeador Ártico (3 Radares)' }
+          ],
+          envProps: [
+            { kind: 'runway_light_blue', x: 8.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 16.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 24.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 32.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 40.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 48.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 56.5, y: 14.5 },
+            { kind: 'runway_light_blue', x: 8.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 16.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 24.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 32.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 40.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 48.5, y: 23.5 },
+            { kind: 'runway_light_blue', x: 56.5, y: 23.5 },
+            { kind: 'runway_light_amber', x: 5.5, y: 16.5 },
+            { kind: 'runway_light_amber', x: 5.5, y: 21.5 },
+            { kind: 'runway_light_amber', x: 61.5, y: 16.5 },
+            { kind: 'runway_light_amber', x: 61.5, y: 21.5 },
+            { kind: 'cargo_plane', x: 28.5, y: 8.5 },
+            { kind: 'cargo_plane', x: 50.5, y: 8.5 },
+            { kind: 'cargo_plane', x: 28.5, y: 29.5 },
+            { kind: 'dish', x: 56.5, y: 3.5 },
+            { kind: 'crate', x: 11.5, y: 7.5 },
+            { kind: 'strobe_light', x: 63.5, y: 18.5 }
+          ],
+          pickups: [
+            { id: 'l17-cryo', kind: 'gadget', weapon: 'cryo_snow', ammo: 14, x: 7.5, y: 11.5, label: 'Cañón de Nieve Criogénica' },
+            { id: 'l17-harpoon', kind: 'gadget', weapon: 'harpoon', ammo: 10, x: 7.5, y: 26.5, label: 'Arpón Magnético' }
+          ],
+          vehicles: [],
+          spotlights: [
+            { cx: 18.5, cy: 18.5, rx: 5.5, ry: 4.0, radius: 84, speed: 1.25, phase: 0.0 },
+            { cx: 38.5, cy: 18.5, rx: 6.0, ry: 4.2, radius: 88, speed: 1.35, phase: 1.8 },
+            { cx: 54.5, cy: 18.5, rx: 4.5, ry: 4.8, radius: 86, speed: 1.4, phase: 3.4 }
+          ],
+          cameras: [
+            { x: 24.5, y: 12.5, baseAngle: Math.PI * 0.5, sweep: 0.72, speed: 1.55, range: 255, fov: 0.68 },
+            { x: 63.5, y: 14.5, baseAngle: Math.PI * 0.8, sweep: 0.68, speed: 1.65, range: 260, fov: 0.7 }
+          ],
+          drones: [
+            {
+              name: 'Dron Pista Norte',
+              speed: 176,
+              range: 230,
+              fov: 0.9,
+              waypoints: [
+                { x: 12.5, y: 15.5 },
+                { x: 34.5, y: 15.5 },
+                { x: 34.5, y: 19.5 },
+                { x: 12.5, y: 19.5 }
+              ]
+            },
+            {
+              name: 'Dron Pista Este',
+              speed: 182,
+              range: 235,
+              fov: 0.92,
+              waypoints: [
+                { x: 40.5, y: 16.5 },
+                { x: 60.5, y: 16.5 },
+                { x: 60.5, y: 21.5 },
+                { x: 40.5, y: 21.5 }
+              ]
+            }
+          ],
+          guards: [
+            {
+              name: 'Perro Robot Pista Oeste',
+              isRobotDog: true,
+              speed: 178,
+              chaseSpeed: 250,
+              waypoints: [
+                { x: 8.5, y: 16.5 },
+                { x: 24.5, y: 16.5 },
+                { x: 24.5, y: 21.5 },
+                { x: 8.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Pista Central',
+              isRobotDog: true,
+              speed: 192,
+              chaseSpeed: 264,
+              waypoints: [
+                { x: 26.5, y: 15.5 },
+                { x: 42.5, y: 15.5 },
+                { x: 42.5, y: 22.5 },
+                { x: 26.5, y: 22.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Acceso Norte',
+              isRobotDog: true,
+              speed: 188,
+              chaseSpeed: 260,
+              waypoints: [
+                { x: 25.5, y: 6.5 },
+                { x: 44.5, y: 6.5 },
+                { x: 44.5, y: 12.5 },
+                { x: 25.5, y: 12.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Hangar Sur',
+              isRobotDog: true,
+              speed: 182,
+              chaseSpeed: 254,
+              waypoints: [
+                { x: 28.5, y: 25.5 },
+                { x: 52.5, y: 25.5 },
+                { x: 52.5, y: 32.5 },
+                { x: 28.5, y: 32.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Hangar Este',
+              isRobotDog: true,
+              speed: 186,
+              chaseSpeed: 258,
+              waypoints: [
+                { x: 44.5, y: 15.5 },
+                { x: 62.5, y: 15.5 },
+                { x: 62.5, y: 22.5 },
+                { x: 44.5, y: 22.5 }
+              ]
+            },
+            {
+              name: 'Motonieve Patrulla Pista',
+              isPatrolSnowmobile: true,
+              proximityRadius: 165,
+              speed: 176,
+              chaseSpeed: 244,
+              waypoints: [
+                { x: 4.5, y: 5.5 },
+                { x: 58.5, y: 5.5 },
+                { x: 58.5, y: 11.5 },
+                { x: 4.5, y: 11.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Base Aérea',
+              isPoacher: true,
+              speed: 146,
+              chaseSpeed: 220,
+              waypoints: [
+                { x: 6.5, y: 25.5 },
+                { x: 22.5, y: 25.5 },
+                { x: 22.5, y: 34.5 },
+                { x: 6.5, y: 34.5 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 17,
+          code: 'N18',
+          act: 'ACTO V · LA ANTÁRTIDA',
+          name: 'Nivel 18 · Laboratorio Criogénico',
+          theme: 'cryo_lab',
+          reactionBoost: 1.72,
+          grid: [
+            // 74 cols x 38 rows (Sector 1: 1..23 | Ventilador 1 col 24 filas 8..10 | Sector 2: 25..43 con Palanca 1 en grieta (36.5,7.5) | Ventilador 2 col 44 filas 24..26 | Sector 3: 45..63 con Palanca 2 en (55.5,28.5) | Puerta col 64)
+            '##########################################################################',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#......####.............#..........####....#......####...................#',
+            '#......####.............#..........####....#......####...................#',
+            '#.......................#.........CCC......#.............................#',
+            '#.......................#.........C.C......#.............................#',
+            '#............................#....CCC......#.............................#',
+            '#............................#.............#.............................#',
+            '#.......................#....#.............#.............................#',
+            '#.......................#..................#.............................#',
+            '#...........##..........#....##............#..........##.................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#....................#....EEE.#',
+            '#.P.....................#..................#....................D....EEE.#',
+            '#.......................#..................#....................#....EEE.#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#...........##..........#..........##......#..........##.................#',
+            '#.......................#..................#.............................#',
+            '#.......................#................................................#',
+            '#.......................#................................................#',
+            '#.......................#................................................#',
+            '#.......................#....####..........#.........CCC.................#',
+            '#......####.............#....####..........#.........C.C.................#',
+            '#......####.............#..................#.........CCC.................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '#.......................#..................#.............................#',
+            '##########################################################################'
+          ],
+          spawn: { x: 2.5, y: 18.5 },
+          doors: [
+            { col: 64, row: 18, type: 'cryo_lab_gate', label: 'Compuerta Laboratorio Criogénico' }
+          ],
+          cryoFans: [
+            {
+              id: 'fan1',
+              x: 24.5,
+              y: 9.0,
+              blockTiles: [{ col: 24, row: 8 }, { col: 24, row: 9 }, { col: 24, row: 10 }],
+              pushVx: -265,
+              pushVy: 0,
+              range: 180,
+              label: 'Ventilador Norte (Congelar con CRIO)'
+            },
+            {
+              id: 'fan2',
+              x: 43.5,
+              y: 25.0,
+              blockTiles: [{ col: 43, row: 24 }, { col: 43, row: 25 }, { col: 43, row: 26 }],
+              pushVx: -265,
+              pushVy: 0,
+              range: 180,
+              label: 'Ventilador Sur (Congelar con CRIO)'
+            }
+          ],
+          magneticLevers: [
+            { id: 'ml1', x: 36.5, y: 7.5, label: 'Palanca Magnética Norte' },
+            { id: 'ml2', x: 55.5, y: 28.5, label: 'Palanca Magnética Sur' }
+          ],
+          envProps: [
+            { kind: 'cryo_capsule', x: 14.5, y: 6.5 },
+            { kind: 'cryo_capsule', x: 14.5, y: 31.5 },
+            { kind: 'cryo_capsule', x: 31.5, y: 18.5 },
+            { kind: 'cryo_capsule', x: 40.5, y: 18.5 },
+            { kind: 'cryo_capsule', x: 52.5, y: 10.5 },
+            { kind: 'cryo_capsule', x: 52.5, y: 20.5 },
+            { kind: 'console', x: 27.5, y: 3.5 },
+            { kind: 'console', x: 49.5, y: 3.5 },
+            { kind: 'strobe_light', x: 62.5, y: 18.5 }
+          ],
+          pickups: [
+            { id: 'l18-cryo-1', kind: 'gadget', weapon: 'cryo_snow', ammo: 14, x: 6.5, y: 10.5, label: 'Cañón de Nieve Criogénica' },
+            { id: 'l18-harp-1', kind: 'gadget', weapon: 'harpoon', ammo: 14, x: 6.5, y: 26.5, label: 'Arpón Magnético' },
+            { id: 'l18-cryo-2', kind: 'gadget', weapon: 'cryo_snow', ammo: 10, x: 28.5, y: 24.5, label: 'Recarga Criogénica Sector 2' },
+            { id: 'l18-harp-2', kind: 'gadget', weapon: 'harpoon', ammo: 10, x: 48.5, y: 18.5, label: 'Recarga Arpón Sector 3' }
+          ],
+          vehicles: [],
+          lasers: [
+            { x1: 18.0, y1: 7.0, x2: 23.0, y2: 7.0, phaseOffset: 0.0, interval: 2.5 },
+            { x1: 25.0, y1: 15.0, x2: 34.0, y2: 15.0, phaseOffset: 1.25, interval: 2.5 },
+            { x1: 35.0, y1: 20.0, x2: 42.0, y2: 20.0, phaseOffset: 0.4, interval: 2.5 },
+            { x1: 45.0, y1: 16.0, x2: 60.0, y2: 16.0, phaseOffset: 1.8, interval: 2.5 }
+          ],
+          cameras: [
+            { x: 22.5, y: 3.5, baseAngle: Math.PI * 0.75, sweep: 0.65, speed: 1.55, range: 240, fov: 0.58 },
+            { x: 41.5, y: 34.5, baseAngle: -Math.PI * 0.78, sweep: 0.65, speed: 1.6, range: 245, fov: 0.58 },
+            { x: 62.5, y: 13.5, baseAngle: Math.PI * 0.85, sweep: 0.6, speed: 1.65, range: 245, fov: 0.6 }
+          ],
+          drones: [
+            {
+              name: 'Dron Criogénico Oeste',
+              speed: 168,
+              range: 215,
+              fov: 0.82,
+              waypoints: [
+                { x: 14.5, y: 14.5 },
+                { x: 21.5, y: 14.5 },
+                { x: 21.5, y: 23.5 },
+                { x: 14.5, y: 23.5 }
+              ]
+            },
+            {
+              name: 'Dron Criogénico Central',
+              speed: 172,
+              range: 215,
+              fov: 0.84,
+              waypoints: [
+                { x: 27.5, y: 17.5 },
+                { x: 40.5, y: 17.5 },
+                { x: 40.5, y: 23.5 },
+                { x: 27.5, y: 23.5 }
+              ]
+            },
+            {
+              name: 'Dron Criogénico Este',
+              speed: 178,
+              range: 220,
+              fov: 0.86,
+              waypoints: [
+                { x: 47.5, y: 12.5 },
+                { x: 61.5, y: 12.5 },
+                { x: 61.5, y: 22.5 },
+                { x: 47.5, y: 22.5 }
+              ]
+            }
+          ],
+          guards: [
+            {
+              name: 'Guardia Élite Crio 1',
+              isElite: true,
+              speed: 146,
+              chaseSpeed: 224,
+              waypoints: [
+                { x: 13.5, y: 7.5 },
+                { x: 21.5, y: 7.5 },
+                { x: 21.5, y: 11.5 },
+                { x: 13.5, y: 11.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Crio 2',
+              isElite: true,
+              speed: 148,
+              chaseSpeed: 226,
+              waypoints: [
+                { x: 26.5, y: 31.5 },
+                { x: 40.5, y: 31.5 },
+                { x: 40.5, y: 35.5 },
+                { x: 26.5, y: 35.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Crio 3',
+              isElite: true,
+              speed: 152,
+              chaseSpeed: 230,
+              waypoints: [
+                { x: 46.5, y: 25.5 },
+                { x: 52.5, y: 25.5 },
+                { x: 52.5, y: 34.5 },
+                { x: 46.5, y: 34.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Puerta Lab',
+              isElite: true,
+              speed: 155,
+              chaseSpeed: 234,
+              waypoints: [
+                { x: 58.5, y: 14.5 },
+                { x: 62.5, y: 14.5 },
+                { x: 62.5, y: 23.5 },
+                { x: 58.5, y: 23.5 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 18,
+          code: 'N19',
+          act: 'ACTO V · LA ANTÁRTIDA',
+          name: 'Nivel 19 · Asalto al Convoy Blindado',
+          theme: 'armored_convoy',
+          glacierScroll: true,
+          windPush: true,
+          reactionBoost: 1.75,
+          grid: [
+            // 126 cols x 36 rows (Abismo glacial 'C' rodeando 5 vagones blindados + 2 tarjetas magnéticas en Vagón 4 y 5 + buque insignia cols 105..123)
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#################CC###################CC###################CC###################CC###################CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#.....####......#CC#......####.......#CC#......####.......#CC#......####.......#CC#......####.......#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#.....####......#CC#......####.......#CC#......####.......#CC#......####.......#CC#......####.......#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#.......##......#CC#........##.......#CC#........##.......#CC#........##.......#CC#........##.......#CC###################CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#.................#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#.................#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#....##.......##..#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#.................#CC',
+            'CC#.....................#................................................................................#.....#...........#CC',
+            'CC#.P....................................................................................................D.....#......EEE..#CC',
+            'CC#......................................................................................................D............EEE..#CC',
+            'CC#.....................#................................................................................D.....#......EEE..#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#.................#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#....##.......##..#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC#.................#CC',
+            'CC#.......##......#CC#........##.......#CC#........##.......#CC#........##.......#CC#........##.......#CC#.................#CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CC###################CC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#.....####......#CC#......####.......#CC#......####.......#CC#......####.......#CC#......####.......#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#.....####......#CC#......####.......#CC#......####.......#CC#......####.......#CC#......####.......#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#...............#CC#.................#CC#.................#CC#.................#CC#.................#CCCCCCCCCCCCCCCCCCCCCCC',
+            'CC#################CC###################CC###################CC###################CC###################CCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+            'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'
+          ],
+          spawn: { x: 4.5, y: 17.5 },
+          doors: [
+            { col: 105, row: 17, type: 'convoy_gate', label: 'Compuerta Blindada Buque (2 Tarjetas)' },
+            { col: 105, row: 18, type: 'convoy_gate', label: 'Compuerta Blindada Buque (2 Tarjetas)' },
+            { col: 105, row: 19, type: 'convoy_gate', label: 'Compuerta Blindada Buque (2 Tarjetas)' }
+          ],
+          laserTurrets: [
+            { id: 'lt1', x1: 15.5, y1: 12.5, x2: 15.5, y2: 23.5, phaseOffset: 0.0, activeDur: 1.4, period: 3.4 },
+            { id: 'lt2', x1: 30.5, y1: 12.5, x2: 30.5, y2: 23.5, phaseOffset: 1.1, activeDur: 1.4, period: 3.4 },
+            { id: 'lt3', x1: 38.5, y1: 12.5, x2: 38.5, y2: 23.5, phaseOffset: 2.2, activeDur: 1.4, period: 3.4 },
+            { id: 'lt4', x1: 52.5, y1: 12.5, x2: 52.5, y2: 23.5, phaseOffset: 0.6, activeDur: 1.4, period: 3.3 },
+            { id: 'lt5', x1: 68.5, y1: 12.5, x2: 68.5, y2: 23.5, phaseOffset: 1.3, activeDur: 1.4, period: 3.2 },
+            { id: 'lt6', x1: 77.5, y1: 6.5, x2: 77.5, y2: 14.5, phaseOffset: 0.4, activeDur: 1.35, period: 3.1 },
+            { id: 'lt7', x1: 89.5, y1: 12.5, x2: 89.5, y2: 23.5, phaseOffset: 2.0, activeDur: 1.4, period: 3.2 },
+            { id: 'lt8', x1: 98.5, y1: 21.5, x2: 98.5, y2: 29.5, phaseOffset: 0.8, activeDur: 1.35, period: 3.1 },
+            { id: 'lt9', x1: 114.5, y1: 13.5, x2: 114.5, y2: 22.5, phaseOffset: 1.7, activeDur: 1.35, period: 3.2 }
+          ],
+          envProps: [
+            { kind: 'convoy_coupler', x: 20.5, y: 17.5 },
+            { kind: 'convoy_coupler', x: 41.5, y: 17.5 },
+            { kind: 'convoy_coupler', x: 62.5, y: 17.5 },
+            { kind: 'convoy_coupler', x: 83.5, y: 17.5 },
+            { kind: 'convoy_coupler', x: 104.5, y: 17.5 },
+            { kind: 'machinery', x: 11.5, y: 6.5 },
+            { kind: 'machinery', x: 32.5, y: 29.5 },
+            { kind: 'machinery', x: 53.5, y: 6.5 },
+            { kind: 'machinery', x: 74.5, y: 29.5 },
+            { kind: 'machinery', x: 95.5, y: 6.5 },
+            { kind: 'fuel_barrel', x: 16.5, y: 28.5 },
+            { kind: 'fuel_barrel', x: 37.5, y: 6.5 },
+            { kind: 'fuel_barrel', x: 78.5, y: 28.5 },
+            { kind: 'fuel_barrel', x: 99.5, y: 6.5 },
+            { kind: 'strobe_light', x: 106.5, y: 18.0 },
+            { kind: 'strobe_light', x: 117.5, y: 18.0 }
+          ],
+          pickups: [
+            { id: 'l19-cryo', kind: 'gadget', weapon: 'cryo_snow', ammo: 14, x: 7.5, y: 11.5, label: 'Cañón de Nieve Criogénica' },
+            { id: 'l19-harpoon', kind: 'gadget', weapon: 'harpoon', ammo: 12, x: 7.5, y: 24.5, label: 'Arpón Magnético' },
+            { id: 'l19-card-1', kind: 'convoy_keycard', x: 72.5, y: 10.5, label: 'Tarjeta Magnética Vagón 4' },
+            { id: 'l19-card-2', kind: 'convoy_keycard', x: 93.5, y: 25.5, label: 'Tarjeta Magnética Vagón 5' }
+          ],
+          vehicles: [
+            { id: 'l19-snowmobile', kind: 'snowmobile', x: 58.5, y: 18.0, angle: 0, label: 'Motonieve Turbo' }
+          ],
+          cameras: [
+            { x: 17.5, y: 6.5, baseAngle: Math.PI * 0.72, sweep: 0.6, speed: 1.55, range: 240, fov: 0.58 },
+            { x: 39.5, y: 29.5, baseAngle: -Math.PI * 0.72, sweep: 0.6, speed: 1.6, range: 240, fov: 0.58 },
+            { x: 60.5, y: 12.5, baseAngle: Math.PI * 0.78, sweep: 0.58, speed: 1.65, range: 240, fov: 0.58 },
+            { x: 79.5, y: 6.5, baseAngle: Math.PI * 0.75, sweep: 0.62, speed: 1.65, range: 245, fov: 0.62 },
+            { x: 100.5, y: 29.5, baseAngle: -Math.PI * 0.75, sweep: 0.62, speed: 1.68, range: 245, fov: 0.62 }
+          ],
+          drones: [
+            {
+              name: 'Dron Convoy Vagón 2',
+              speed: 174,
+              range: 215,
+              fov: 0.84,
+              waypoints: [
+                { x: 25.5, y: 14.5 },
+                { x: 38.5, y: 14.5 },
+                { x: 38.5, y: 21.5 },
+                { x: 25.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Dron Convoy Vagón 3',
+              speed: 178,
+              range: 220,
+              fov: 0.86,
+              waypoints: [
+                { x: 46.5, y: 14.5 },
+                { x: 58.5, y: 14.5 },
+                { x: 58.5, y: 21.5 },
+                { x: 46.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Dron Convoy Vagón 4',
+              speed: 180,
+              range: 225,
+              fov: 0.88,
+              waypoints: [
+                { x: 67.5, y: 14.5 },
+                { x: 79.5, y: 14.5 },
+                { x: 79.5, y: 21.5 },
+                { x: 67.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Dron Convoy Vagón 5',
+              speed: 182,
+              range: 225,
+              fov: 0.88,
+              waypoints: [
+                { x: 88.5, y: 14.5 },
+                { x: 100.5, y: 14.5 },
+                { x: 100.5, y: 21.5 },
+                { x: 88.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Dron Buque Insignia',
+              speed: 184,
+              range: 225,
+              fov: 0.88,
+              waypoints: [
+                { x: 108.5, y: 16.5 },
+                { x: 117.5, y: 16.5 },
+                { x: 117.5, y: 19.5 },
+                { x: 108.5, y: 19.5 }
+              ]
+            }
+          ],
+          guards: [
+            {
+              name: 'Furtivo Pesado Vagón 1',
+              isPoacher: true,
+              isHeavy: true,
+              speed: 138,
+              chaseSpeed: 214,
+              waypoints: [
+                { x: 11.5, y: 13.5 },
+                { x: 17.5, y: 13.5 },
+                { x: 17.5, y: 22.5 },
+                { x: 11.5, y: 22.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Pesado Vagón 2',
+              isPoacher: true,
+              isHeavy: true,
+              speed: 142,
+              chaseSpeed: 218,
+              waypoints: [
+                { x: 26.5, y: 25.5 },
+                { x: 38.5, y: 25.5 },
+                { x: 38.5, y: 29.5 },
+                { x: 26.5, y: 29.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Pesado Vagón 3',
+              isPoacher: true,
+              isHeavy: true,
+              speed: 146,
+              chaseSpeed: 222,
+              waypoints: [
+                { x: 47.5, y: 25.5 },
+                { x: 59.5, y: 25.5 },
+                { x: 59.5, y: 29.5 },
+                { x: 47.5, y: 29.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Pesado Vagón 4',
+              isPoacher: true,
+              isHeavy: true,
+              speed: 148,
+              chaseSpeed: 224,
+              waypoints: [
+                { x: 66.5, y: 9.5 },
+                { x: 78.5, y: 9.5 },
+                { x: 78.5, y: 10.5 },
+                { x: 66.5, y: 10.5 }
+              ]
+            },
+            {
+              name: 'Furtivo Pesado Vagón 5',
+              isPoacher: true,
+              isHeavy: true,
+              speed: 150,
+              chaseSpeed: 226,
+              waypoints: [
+                { x: 87.5, y: 24.5 },
+                { x: 99.5, y: 24.5 },
+                { x: 99.5, y: 25.5 },
+                { x: 87.5, y: 25.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Buque Insignia',
+              isElite: true,
+              speed: 158,
+              chaseSpeed: 238,
+              waypoints: [
+                { x: 108.5, y: 12.5 },
+                { x: 118.5, y: 12.5 },
+                { x: 118.5, y: 16.5 },
+                { x: 108.5, y: 16.5 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 19,
+          code: 'N20',
+          act: 'ACTO V · LA ANTÁRTIDA',
+          name: 'Nivel 20 · El Núcleo del Glaciar — Batalla Final',
+          theme: 'glacier_core',
+          snowstorm: true,
+          stormIntensityBoost: 0.72,
+          reactionBoost: 1.82,
+          grid: [
+            // 82 cols x 38 rows (Zona 1: 1..25 | Turbina col 26 | Zona 2 Reactor: 27..44 | Grieta puente levadizo: 45..47 | Zona 3 Vapor Ardiente 54..61 + Portal Jefe 69.5 | Compuerta 73 | Salida 77..79)
+            '##################################################################################',
+            '#.........................#.................CCC..................................#',
+            '#.........................#.................CCC..................................#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#..............####.......#.................CCC......########...........#........#',
+            '#..............####.......#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#..........IIIIII.........#....IIIIII.......CCC......########...........#........#',
+            '#..........IIIIII.........#....IIIIII.......CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC.........................#........#',
+            '#.........................#.................CCC.........................#........#',
+            '#...........................................CCC.........................#...EEE..#',
+            '#.P................................XX.......CCC.........................D...EEE..#',
+            '#..................................XX.......CCC.........................#...EEE..#',
+            '#.........................#.................CCC.........................#........#',
+            '#.........................#.................CCC.........................#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#....IIIIII.......CCC......########...........#........#',
+            '#..........IIIIII.........#....IIIIII.......CCC......########...........#........#',
+            '#..........IIIIII.........#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#..............####.......#.................CCC......########...........#........#',
+            '#..............####.......#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC......########...........#........#',
+            '#.........................#.................CCC.........................#........#',
+            '##################################################################################'
+          ],
+          spawn: { x: 3.5, y: 18.5 },
+          doors: [
+            { col: 73, row: 18, type: 'boss_core', label: 'Compuerta del Núcleo Final' }
+          ],
+          subgameZones: [
+            { id: 'l20-icebreaker-boss', kind: 'icebreaker_boss', x: 69.5, y: 18.5, radius: 42, label: 'Arena Final: Mecha Araña Rompehielos' }
+          ],
+          cryoFans: [
+            {
+              id: 'l20-turbine',
+              giantTurbine: true,
+              x: 26.5,
+              y: 18.5,
+              blockTiles: [{ col: 26, row: 17 }, { col: 26, row: 18 }, { col: 26, row: 19 }],
+              pushVx: -340,
+              pushVy: 0,
+              range: 220,
+              label: 'Turbina Criogénica Gigante (Congelar con CRIO)'
+            }
+          ],
+          drawbridges: [
+            {
+              id: 'l20-bridge',
+              x: 46.5,
+              y: 18.5,
+              winchX: 48.5,
+              winchY: 16.5,
+              tiles: [
+                { col: 45, row: 17 }, { col: 46, row: 17 }, { col: 47, row: 17 },
+                { col: 45, row: 18 }, { col: 46, row: 18 }, { col: 47, row: 18 },
+                { col: 45, row: 19 }, { col: 46, row: 19 }, { col: 47, row: 19 }
+              ],
+              label: 'Cabrestante Puente Levadizo (ARPÓN)'
+            }
+          ],
+          burningCorridors: [
+            {
+              id: 'l20-steam',
+              minCol: 54,
+              maxCol: 61,
+              minRow: 15,
+              maxRow: 21,
+              label: 'Pasillo de Vapor Ardiente (Escudo Térmico)'
+            }
+          ],
+          envProps: [
+            { kind: 'glacier_reactor', x: 36.0, y: 19.0 },
+            { kind: 'aurora_crystal', x: 11.5, y: 7.5 },
+            { kind: 'aurora_crystal', x: 11.5, y: 29.5 },
+            { kind: 'aurora_crystal', x: 31.5, y: 15.5 },
+            { kind: 'aurora_crystal', x: 40.5, y: 23.5 },
+            { kind: 'alarm_light', x: 24.5, y: 16.5 },
+            { kind: 'alarm_light', x: 43.5, y: 16.5 },
+            { kind: 'alarm_light', x: 53.5, y: 16.5 },
+            { kind: 'alarm_light', x: 71.5, y: 16.5 },
+            { kind: 'cryo_capsule', x: 64.5, y: 11.5 },
+            { kind: 'cryo_capsule', x: 64.5, y: 25.5 }
+          ],
+          pickups: [
+            { id: 'l20-cryo', kind: 'gadget', weapon: 'cryo_snow', ammo: 16, x: 8.5, y: 11.5, label: 'Cañón de Nieve Criogénica' },
+            { id: 'l20-harpoon', kind: 'gadget', weapon: 'harpoon', ammo: 14, x: 8.5, y: 25.5, label: 'Arpón Magnético' },
+            { id: 'l20-shield', kind: 'thermal_shield_pickup', x: 38.5, y: 8.5, label: 'Escudo Térmico Experimental' },
+            { id: 'l20-harpoon-2', kind: 'gadget', weapon: 'harpoon', ammo: 10, x: 42.5, y: 21.5, label: 'Recarga Arpón Puente' }
+          ],
+          vehicles: [],
+          lasers: [
+            { x1: 18.5, y1: 12.0, x2: 18.5, y2: 24.0, phaseOffset: 0.0, interval: 2.4 },
+            { x1: 50.5, y1: 15.0, x2: 50.5, y2: 22.0, phaseOffset: 1.1, interval: 2.3 }
+          ],
+          cameras: [
+            { x: 24.5, y: 12.5, baseAngle: Math.PI * 0.72, sweep: 0.65, speed: 1.65, range: 250, fov: 0.64 },
+            { x: 42.5, y: 26.5, baseAngle: -Math.PI * 0.72, sweep: 0.65, speed: 1.68, range: 250, fov: 0.64 },
+            { x: 71.5, y: 13.5, baseAngle: Math.PI * 0.82, sweep: 0.62, speed: 1.72, range: 255, fov: 0.66 }
+          ],
+          drones: [
+            {
+              name: 'Dron Glaciar Oeste',
+              speed: 175,
+              range: 225,
+              fov: 0.88,
+              waypoints: [
+                { x: 13.5, y: 14.5 },
+                { x: 22.5, y: 14.5 },
+                { x: 22.5, y: 22.5 },
+                { x: 13.5, y: 22.5 }
+              ]
+            },
+            {
+              name: 'Dron Reactor Central',
+              speed: 180,
+              range: 230,
+              fov: 0.9,
+              waypoints: [
+                { x: 29.5, y: 13.5 },
+                { x: 41.5, y: 13.5 },
+                { x: 41.5, y: 24.5 },
+                { x: 29.5, y: 24.5 }
+              ]
+            },
+            {
+              name: 'Dron Pasillo Núcleo',
+              speed: 186,
+              range: 235,
+              fov: 0.92,
+              waypoints: [
+                { x: 63.5, y: 13.5 },
+                { x: 70.5, y: 13.5 },
+                { x: 70.5, y: 24.5 },
+                { x: 63.5, y: 24.5 }
+              ]
+            }
+          ],
+          guards: [
+            {
+              name: 'Perro Robot Turbina',
+              isRobotDog: true,
+              speed: 184,
+              chaseSpeed: 258,
+              waypoints: [
+                { x: 9.5, y: 15.5 },
+                { x: 22.5, y: 15.5 },
+                { x: 22.5, y: 21.5 },
+                { x: 9.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Reactor',
+              isElite: true,
+              speed: 154,
+              chaseSpeed: 234,
+              waypoints: [
+                { x: 32.5, y: 7.5 },
+                { x: 42.5, y: 7.5 },
+                { x: 42.5, y: 10.5 },
+                { x: 32.5, y: 10.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Reactor Sur',
+              isRobotDog: true,
+              speed: 188,
+              chaseSpeed: 262,
+              waypoints: [
+                { x: 29.5, y: 27.5 },
+                { x: 41.5, y: 27.5 },
+                { x: 41.5, y: 32.5 },
+                { x: 29.5, y: 32.5 }
+              ]
+            },
+            {
+              name: 'Guardia Élite Pasillo Vapor',
+              isElite: true,
+              speed: 158,
+              chaseSpeed: 238,
+              waypoints: [
+                { x: 50.5, y: 15.5 },
+                { x: 64.5, y: 15.5 },
+                { x: 64.5, y: 21.5 },
+                { x: 50.5, y: 21.5 }
+              ]
+            },
+            {
+              name: 'Perro Robot Núcleo',
+              isRobotDog: true,
+              speed: 192,
+              chaseSpeed: 266,
+              waypoints: [
+                { x: 63.5, y: 6.5 },
+                { x: 70.5, y: 6.5 },
+                { x: 70.5, y: 30.5 },
+                { x: 63.5, y: 30.5 }
+              ]
+            }
+          ]
         }
       ];
 
@@ -6282,7 +7438,10 @@
           { x: 33.5, y: 18.5, color: '#FB923C', r: 260 },
           { x: 45.5, y: 18.5, color: '#F97316', r: 260 },
           { x: 50.0, y: 18.5, color: '#FACC15', r: 250 },
-          { x: 63.5, y: 18.5, color: '#34D399', r: 250 }
+          { x: 63.5, y: 18.5, color: '#FB923C', r: 255 },
+          { x: 84.5, y: 9.5, color: '#38BDF8', r: 255 },
+          { x: 84.5, y: 27.5, color: '#38BDF8', r: 255 },
+          { x: 105.0, y: 18.5, color: '#34D399', r: 280 }
         ],
         [
           { x: 3.5, y: 3.5, color: '#38BDF8', r: 220 },
@@ -6290,6 +7449,40 @@
           { x: 39.5, y: 20.0, color: '#FACC15', r: 260 },
           { x: 60.5, y: 20.0, color: '#FB923C', r: 260 },
           { x: 70.0, y: 20.0, color: '#34D399', r: 300 }
+        ],
+        [
+          { x: 4.5, y: 18.5, color: '#38BDF8', r: 240 },
+          { x: 24.5, y: 18.5, color: '#7DD3FC', r: 270 },
+          { x: 46.5, y: 18.5, color: '#FACC15', r: 260 },
+          { x: 58.5, y: 18.5, color: '#22D3EE', r: 280 },
+          { x: 70.0, y: 18.5, color: '#34D399', r: 280 }
+        ],
+        [
+          { x: 3.5, y: 18.5, color: '#22D3EE', r: 230 },
+          { x: 24.5, y: 9.5, color: '#38BDF8', r: 250 },
+          { x: 36.5, y: 7.5, color: '#67E8F9', r: 250 },
+          { x: 43.5, y: 25.0, color: '#38BDF8', r: 250 },
+          { x: 55.5, y: 28.5, color: '#67E8F9', r: 250 },
+          { x: 69.0, y: 18.5, color: '#34D399', r: 270 }
+        ],
+        [
+          { x: 5.5, y: 18.0, color: '#38BDF8', r: 240 },
+          { x: 21.5, y: 18.0, color: '#F59E0B', r: 230 },
+          { x: 42.5, y: 18.0, color: '#F59E0B', r: 230 },
+          { x: 58.5, y: 18.0, color: '#22D3EE', r: 260 },
+          { x: 72.5, y: 10.5, color: '#FACC15', r: 230 },
+          { x: 93.5, y: 25.5, color: '#FACC15', r: 230 },
+          { x: 118.5, y: 18.0, color: '#34D399', r: 290 }
+        ],
+        [
+          { x: 3.5, y: 18.5, color: '#38BDF8', r: 240 },
+          { x: 26.5, y: 18.5, color: '#22D3EE', r: 260 },
+          { x: 36.0, y: 19.0, color: '#67E8F9', r: 300 },
+          { x: 38.5, y: 8.5, color: '#FB923C', r: 240 },
+          { x: 46.5, y: 18.5, color: '#FACC15', r: 240 },
+          { x: 58.0, y: 18.5, color: '#F97316', r: 250 },
+          { x: 69.5, y: 18.5, color: '#F43F5E', r: 270 },
+          { x: 78.0, y: 18.5, color: '#34D399', r: 290 }
         ]
       ];
 
@@ -6559,6 +7752,11 @@
         cryoNodes: [],
         harpoonLocks: [],
         colonyPenguins: [],
+        coolingValves: [],
+        fireGeysers: [],
+        cryoFans: [],
+        magneticLevers: [],
+        laserTurrets: [],
         masterGeneratorCard: false,
         thermalShield: false,
         volcanoWarnCooldown: 0,
@@ -6615,7 +7813,8 @@
         'conveyor_gauntlet',
         'captain_boss',
         'snowmobile_race',
-        'magma_crossing'
+        'magma_crossing',
+        'glider_run'
       ]);
       const SUBGAME_KIND_TO_MODE = {
         aquarium_shark: 'shark_race',
@@ -6623,7 +7822,8 @@
         warehouse_rushhour: 'conveyor_gauntlet',
         bridge_calibration: 'captain_boss',
         snowmobile_tunnel: 'snowmobile_race',
-        magma_platforms: 'magma_crossing'
+        magma_platforms: 'magma_crossing',
+        glider_radar: 'glider_run'
       };
       const keysDown = new Set();
       const inputState = {
@@ -7023,6 +8223,11 @@
         state.cryoNodes = [];
         state.harpoonLocks = [];
         state.colonyPenguins = [];
+        state.coolingValves = [];
+        state.fireGeysers = [];
+        state.cryoFans = [];
+        state.magneticLevers = [];
+        state.laserTurrets = [];
         state.subgame = { active: false, kind: null, zone: null, data: null };
         document.body.classList.remove('shark-race-active', 'fullscreen-subgame-active', 'subgame-needs-action');
         state.projectiles = [];
@@ -7132,6 +8337,49 @@
           ...cp,
           px: cp.x * TILE,
           py: cp.y * TILE
+        }));
+        state.coolingValves = (def.coolingValves || []).map((cv, i) => ({
+          ...cv,
+          index: i + 1,
+          px: cv.x * TILE,
+          py: cv.y * TILE,
+          activated: false
+        }));
+        state.fireGeysers = (def.fireGeysers || []).map((fg) => ({
+          ...fg,
+          px: fg.x * TILE,
+          py: fg.y * TILE,
+          phaseOffset: fg.phaseOffset || 0,
+          activeDur: fg.activeDur || 1.25,
+          period: fg.period || 3.2
+        }));
+        state.cryoFans = (def.cryoFans || []).map((cf, i) => ({
+          ...cf,
+          index: i + 1,
+          px: cf.x * TILE,
+          py: cf.y * TILE,
+          blockTiles: (cf.blockTiles || []).map((bt) => ({ col: bt.col, row: bt.row })),
+          pushVx: cf.pushVx || -265,
+          pushVy: cf.pushVy || 0,
+          range: cf.range || 180,
+          frozen: false
+        }));
+        state.magneticLevers = (def.magneticLevers || []).map((ml, i) => ({
+          ...ml,
+          index: i + 1,
+          px: ml.x * TILE,
+          py: ml.y * TILE,
+          activated: false
+        }));
+        state.laserTurrets = (def.laserTurrets || []).map((lt) => ({
+          ...lt,
+          x1: lt.x1 * TILE,
+          y1: lt.y1 * TILE,
+          x2: lt.x2 * TILE,
+          y2: lt.y2 * TILE,
+          phaseOffset: lt.phaseOffset || 0,
+          activeDur: lt.activeDur || 1.4,
+          period: lt.period || 3.4
         }));
         state.lasers = (def.lasers || []).map((ls) => ({
           x1: ls.x1 * TILE,
@@ -7412,6 +8660,7 @@
             isElite: !!g.isElite,
             isPatrolVehicle: !!g.isPatrolVehicle,
             isPoacher: !!g.isPoacher,
+            isThermalHunter: !!g.isThermalHunter,
             isHeavy: !!g.isHeavy,
             isPatrolSnowmobile: !!g.isPatrolSnowmobile,
             isRobotDog: !!g.isRobotDog,
@@ -7499,6 +8748,24 @@
           });
         }
 
+        state.coolingValves.forEach((cv) => {
+          state.doors.forEach((d) => {
+            if (d.type === 'cooling_valves') addManhattanCable('cooling_valve', cv, d);
+          });
+        });
+
+        state.cryoFans.forEach((cf) => {
+          state.doors.forEach((d) => {
+            if (d.type === 'cryo_lab_gate') addManhattanCable('cryo_fan', cf, d);
+          });
+        });
+
+        state.magneticLevers.forEach((ml) => {
+          state.doors.forEach((d) => {
+            if (d.type === 'cryo_lab_gate') addManhattanCable('magnetic_lever', ml, d);
+          });
+        });
+
         state.floorCables = cables;
       }
 
@@ -7518,6 +8785,12 @@
         const ch = state.grid[row][col];
         if (ch === '#' || ch === 'W' || ch === 'T' || ch === 'B' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'L') return true;
         if (ch === 'V' && !state.thermalShield) return true;
+        for (let i = 0; i < state.cryoFans.length; i++) {
+          const fan = state.cryoFans[i];
+          if (!fan.frozen && fan.blockTiles && fan.blockTiles.some((bt) => bt.col === col && bt.row === row)) {
+            return true;
+          }
+        }
         if (ch === 'D' || ch === 'K') {
           const door = state.doors.find((d) => d.col === col && d.row === row);
           return door ? !door.open : true;
@@ -7884,6 +9157,82 @@
         checkFortressGatesUnlock();
       }
 
+      function activateCoolingValve(cv) {
+        if (!cv || cv.activated) return;
+        cv.activated = true;
+        cv.active = true;
+        sfx.switchOn();
+        spawnParticles(cv.px, cv.py, 22, '#38BDF8', 50, 185, 3, 6, 0.54, 'spark');
+        state.ripples.push({ x: cv.px, y: cv.py, r: 10, maxR: 145, life: 0.48, color: '#38BDF8' });
+        if (areAllCoolingValvesActive(state.coolingValves)) {
+          let openedAny = false;
+          state.doors.forEach((d) => {
+            if (d.type === 'cooling_valves' && !d.open) {
+              d.open = true;
+              openedAny = true;
+              spawnParticles(d.x, d.y, 26, '#34D399', 55, 195, 3, 6.5, 0.6, 'spark');
+            }
+          });
+          if (openedAny) {
+            sfx.lockHit();
+            sfx.turbo();
+            state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.35);
+            showUnlockToast('¡Válvulas Activadas! ¡Compuerta Final Abierta!', 2800);
+          }
+        } else {
+          const actCount = state.coolingValves.filter((v) => v.activated).length;
+          showUnlockToast(`Válvula Enfriamiento (${actCount}/${state.coolingValves.length})`, 1900);
+        }
+        updateHUD();
+      }
+
+      function checkCryoLabGateUnlock() {
+        if (areAllCryoLabSystemsCleared(state.cryoFans, state.magneticLevers)) {
+          let openedAny = false;
+          state.doors.forEach((d) => {
+            if (d.type === 'cryo_lab_gate' && !d.open) {
+              d.open = true;
+              openedAny = true;
+              spawnParticles(d.x, d.y, 28, '#34D399', 55, 200, 3, 6.5, 0.6, 'spark');
+            }
+          });
+          if (openedAny) {
+            sfx.lockHit();
+            sfx.turbo();
+            state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.38);
+            showUnlockToast('¡Sistemas Neutralizados! ¡Compuerta del Laboratorio Abierta!', 2800);
+          }
+        }
+        updateHUD();
+      }
+
+      function freezeCryoFan(fan) {
+        if (!fan || fan.frozen) return;
+        fan.frozen = true;
+        fan.active = true;
+        sfx.iceCube();
+        spawnParticles(fan.px, fan.py, 22, '#7DD3FC', 45, 185, 3, 6, 0.55, 'spark');
+        (fan.blockTiles || []).forEach((bt) => {
+          spawnParticles((bt.col + 0.5) * TILE, (bt.row + 0.5) * TILE, 10, '#E0F2FE', 30, 110, 2.5, 5, 0.45, 'spark');
+        });
+        state.ripples.push({ x: fan.px, y: fan.py, r: 10, maxR: 135, life: 0.45, color: '#38BDF8' });
+        const frozenCount = state.cryoFans.filter((f) => f.frozen).length;
+        showUnlockToast(`Ventilador Congelado (${frozenCount}/${state.cryoFans.length})`, 1900);
+        checkCryoLabGateUnlock();
+      }
+
+      function pullMagneticLever(lv) {
+        if (!lv || lv.activated) return;
+        lv.activated = true;
+        lv.active = true;
+        sfx.harpoonPull();
+        spawnParticles(lv.px, lv.py, 22, '#FACC15', 45, 185, 3, 6, 0.55, 'spark');
+        state.ripples.push({ x: lv.px, y: lv.py, r: 10, maxR: 135, life: 0.45, color: '#FACC15' });
+        const actCount = state.magneticLevers.filter((l) => l.activated).length;
+        showUnlockToast(`Palanca Magnética (${actCount}/${state.magneticLevers.length})`, 1900);
+        checkCryoLabGateUnlock();
+      }
+
       function handleTurbo() {
         const p = state.player;
         if (!p || (p.vehicle !== 'moto' && p.vehicle !== 'boat' && p.vehicle !== 'snowmobile') || p.turboCooldown > 0) return;
@@ -7972,6 +9321,24 @@
           if (sn.disabled) continue;
           if (Math.hypot(p.x - sn.px, p.y - sn.py) < 58) {
             return { kind: 'sonar-console', obj: sn, label: `Desactivar ${sn.label}` };
+          }
+        }
+
+        // 0d3. Check nearby N15 Cooling Valve within 58px
+        for (let i = 0; i < state.coolingValves.length; i++) {
+          const cv = state.coolingValves[i];
+          if (cv.activated) continue;
+          if (Math.hypot(p.x - cv.px, p.y - cv.py) < 58) {
+            return { kind: 'cooling-valve', obj: cv, label: `Activar ${cv.label}` };
+          }
+        }
+
+        // 0d4. Check nearby N18 Magnetic Lever within 58px
+        for (let i = 0; i < state.magneticLevers.length; i++) {
+          const ml = state.magneticLevers[i];
+          if (ml.activated) continue;
+          if (Math.hypot(p.x - ml.px, p.y - ml.py) < 58) {
+            return { kind: 'magnetic-lever', obj: ml, label: `Tirar de ${ml.label}` };
           }
         }
 
@@ -8076,6 +9443,28 @@
                 label: `Dispara CRIO (C${d.gateId}) y ARPÓN (A${d.gateId})`
               };
             }
+            if (d.type === 'cooling_valves') {
+              const actV = state.coolingValves.filter((v) => v.activated).length;
+              return {
+                kind: 'door-cooling-valves',
+                obj: d,
+                label: `Activa Válvulas de Enfriamiento (${actV}/${state.coolingValves.length})`
+              };
+            }
+            if (d.type === 'hangar') {
+              return {
+                kind: 'door-hangar',
+                obj: d,
+                label: 'Completa Misión en Planeador Ártico'
+              };
+            }
+            if (d.type === 'cryo_lab_gate') {
+              return {
+                kind: 'door-cryo-lab',
+                obj: d,
+                label: 'Congela Ventiladores (CRIO) y Tira Palancas (ARPÓN)'
+              };
+            }
           }
         }
 
@@ -8134,6 +9523,16 @@
           return;
         }
 
+        if (near.kind === 'cooling-valve') {
+          activateCoolingValve(near.obj);
+          return;
+        }
+
+        if (near.kind === 'magnetic-lever') {
+          pullMagneticLever(near.obj);
+          return;
+        }
+
         if (near.kind === 'pressure-button') {
           activatePressureButton(near.obj);
           return;
@@ -8154,7 +9553,10 @@
           near.kind === 'door-master-generator' ||
           near.kind === 'door-sonar' ||
           near.kind === 'door-thermal-shield' ||
-          near.kind === 'door-armored-fortress'
+          near.kind === 'door-armored-fortress' ||
+          near.kind === 'door-cooling-valves' ||
+          near.kind === 'door-hangar' ||
+          near.kind === 'door-cryo-lab'
         ) {
           sfx.lockMiss();
           state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.22);
@@ -8435,6 +9837,46 @@
           };
         }
 
+        if (kind === 'glider_radar') {
+          const skyH = 440;
+          const skyTop = 64;
+          const skyBot = 376;
+          const startX = 160;
+          const runwayEnd = 4600;
+          const course = generateGliderRadarCourse(startX, runwayEnd, skyTop, skyBot);
+          return {
+            skyH,
+            skyTop,
+            skyBot,
+            startX,
+            runwayEnd,
+            playerX: startX,
+            playerY: (skyTop + skyBot) * 0.5,
+            vx: 220,
+            vy: 0,
+            angle: 0,
+            timeLeft: 25.0,
+            hp: 3,
+            maxHp: 3,
+            boostTimer: 0,
+            invulnTimer: 0,
+            blinkTimer: 0,
+            hurtFlash: 0,
+            winFlash: 0,
+            shakeTrauma: 0,
+            disabledCount: 0,
+            requiredTowers: course.towers.length,
+            towers: course.towers,
+            hazards: course.hazards,
+            boostRings: course.boostRings,
+            phase: 'playing', // 'playing' | 'lost' | 'won'
+            phaseTimer: 0,
+            elapsed: 0,
+            particles: [],
+            trail: []
+          };
+        }
+
         // bridge_calibration -> Level 9 Captain Boss Battle
         const arenaW = 760;
         const arenaH = 440;
@@ -8672,7 +10114,20 @@
           state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.32);
           setMode('playing');
           updateHUD();
-          showUnlockToast('¡Escudo Térmico Activo! Cruza la Lava Sólida hacia la Salida', 3100);
+          showUnlockToast('¡Escudo Térmico Activo! Cruza la Lava Sólida hacia las Válvulas', 3100);
+        } else if (sg.kind === 'glider_radar') {
+          sfx.lockHit();
+          sfx.turbo();
+          state.doors.forEach((d) => {
+            if (d.type === 'hangar' && !d.open) {
+              d.open = true;
+              spawnParticles(d.x, d.y, 26, '#22D3EE', 55, 195, 3, 6, 0.58, 'spark');
+            }
+          });
+          state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.32);
+          setMode('playing');
+          updateHUD();
+          showUnlockToast('¡Radares Desactivados! ¡Compuerta del Hangar Abierta!', 3000);
         }
         sg.zone = null;
         sg.data = null;
@@ -9792,6 +11247,151 @@
         }
       }
 
+      // LEVEL 17 FULLSCREEN SUBGAME UPDATE: ARCTIC GLIDER RADAR ASSAULT (25s)
+      function updateGliderRun(dt) {
+        const sg = state.subgame;
+        if (!sg.active || sg.kind !== 'glider_radar' || !sg.data) return;
+        const d = sg.data;
+
+        d.shakeTrauma = Math.max(0, d.shakeTrauma - dt * 1.9);
+        d.hurtFlash = Math.max(0, d.hurtFlash - dt * 2.4);
+        d.winFlash = Math.max(0, d.winFlash - dt * 1.8);
+        d.invulnTimer = Math.max(0, d.invulnTimer - dt);
+        d.blinkTimer = Math.max(0, d.blinkTimer - dt);
+        d.boostTimer = Math.max(0, d.boostTimer - dt);
+
+        for (let i = d.particles.length - 1; i >= 0; i--) {
+          const pt = d.particles[i];
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+          pt.rot += pt.vrot * dt;
+          pt.life -= dt;
+          if (pt.life <= 0) d.particles.splice(i, 1);
+        }
+
+        if (d.phase !== 'playing') {
+          d.phaseTimer += dt;
+          if (d.phase === 'lost' && d.phaseTimer >= 1.15) {
+            restartActiveSubgame();
+          } else if (d.phase === 'won' && d.phaseTimer >= 1.15) {
+            closeSubgame(true);
+          }
+          return;
+        }
+
+        d.elapsed += dt;
+        d.timeLeft = Math.max(0, d.timeLeft - dt);
+
+        let mx = inputState.joyX;
+        let my = inputState.joyY;
+        if (keysDown.has('KeyA') || keysDown.has('ArrowLeft')) mx -= 1;
+        if (keysDown.has('KeyD') || keysDown.has('ArrowRight')) mx += 1;
+        if (keysDown.has('KeyW') || keysDown.has('ArrowUp')) my -= 1;
+        if (keysDown.has('KeyS') || keysDown.has('ArrowDown')) my += 1;
+        const mag = Math.hypot(mx, my);
+        if (mag > 1) {
+          mx /= mag;
+          my /= mag;
+        }
+
+        const boostBonus = d.boostTimer > 0 ? 145 : 0;
+        const targetVx = mx < -0.3
+          ? clamp(220 + mx * 270 + boostBonus, -90, 420)
+          : clamp(225 + mx * 115 + boostBonus, 145, 445);
+        const targetVy = my * 245;
+        d.vx += (targetVx - d.vx) * Math.min(1, dt * 8.5);
+        d.vy += (targetVy - d.vy) * Math.min(1, dt * 11);
+
+        d.playerX = clamp(d.playerX + d.vx * dt, d.startX - 40, d.runwayEnd + 60);
+        d.playerY = clamp(d.playerY + d.vy * dt, d.skyTop + 18, d.skyBot - 18);
+        d.angle = lerpAngle(d.angle, clamp(d.vy * 0.0022, -0.45, 0.45), dt * 12);
+
+        d.trail.push({
+          x: d.playerX - 16,
+          y: d.playerY,
+          r: d.boostTimer > 0 ? 7.2 : 4.8,
+          life: 0.36,
+          maxLife: 0.36,
+          boost: d.boostTimer > 0
+        });
+        if (d.trail.length > 26) d.trail.shift();
+        for (let i = d.trail.length - 1; i >= 0; i--) {
+          d.trail[i].life -= dt;
+          if (d.trail[i].life <= 0) d.trail.splice(i, 1);
+        }
+
+        // Boost Rings
+        for (let i = 0; i < d.boostRings.length; i++) {
+          const r = d.boostRings[i];
+          if (r.collected) continue;
+          if (Math.hypot(d.playerX - r.x, d.playerY - r.y) < r.radius + 18) {
+            r.collected = true;
+            d.boostTimer = 1.6;
+            sfx.turbo();
+            for (let k = 0; k < 14; k++) {
+              spawnSharkParticle(d, r.x, r.y, '#22D3EE', 55, 190, 2, 4.5, 0.38, 'spark');
+            }
+          }
+        }
+
+        // Radar Towers (disable 3 towers by flying through their EMP disrupt zone)
+        for (let i = 0; i < d.towers.length; i++) {
+          const tw = d.towers[i];
+          if (tw.disabled) continue;
+          if (Math.hypot(d.playerX - tw.x, d.playerY - tw.y) < tw.radius + 26) {
+            tw.disabled = true;
+            d.disabledCount = d.towers.filter((t) => t.disabled).length;
+            d.shakeTrauma = Math.min(1, d.shakeTrauma + 0.32);
+            sfx.lockHit();
+            for (let k = 0; k < 20; k++) {
+              spawnSharkParticle(d, tw.x, tw.y, k % 2 === 0 ? '#34D399' : '#38BDF8', 60, 215, 2.5, 5.5, 0.45, 'spark');
+            }
+          }
+        }
+
+        // Air Hazards: wind_gust currents + oscillating thermal flares
+        for (let i = 0; i < d.hazards.length; i++) {
+          const hz = d.hazards[i];
+          if (hz.kind === 'wind_gust') {
+            const hw = (hz.w || 110) * 0.5;
+            const hh = (hz.h || 54) * 0.5;
+            if (Math.abs(d.playerX - hz.x) <= hw && Math.abs(d.playerY - hz.y) <= hh) {
+              d.playerX = clamp(d.playerX + (hz.vx || -85) * dt, d.startX - 40, d.runwayEnd + 60);
+              d.playerY = clamp(d.playerY + (hz.vy || 110) * dt, d.skyTop + 18, d.skyBot - 18);
+            }
+          } else {
+            if (hz.moveAmp > 0) {
+              hz.y = hz.baseY + Math.sin(d.elapsed * hz.moveFreq + hz.phase) * hz.moveAmp;
+            }
+            if (d.invulnTimer <= 0 && Math.hypot(d.playerX - hz.x, d.playerY - hz.y) < hz.radius + 14) {
+              d.hp = Math.max(0, d.hp - 1);
+              d.invulnTimer = 1.05;
+              d.blinkTimer = 1.05;
+              d.hurtFlash = 0.9;
+              d.shakeTrauma = 0.68;
+              d.vx *= 0.48;
+              sfx.laserZap();
+              for (let k = 0; k < 18; k++) {
+                spawnSharkParticle(d, d.playerX, d.playerY, k % 2 === 0 ? '#FB923C' : '#F43F5E', 55, 200, 2.5, 5, 0.42, 'spark');
+              }
+            }
+          }
+        }
+
+        const outcome = evaluateGliderRadarOutcome(d.timeLeft, d.disabledCount, d.requiredTowers, d.hp);
+        if (outcome === 'lost_hits' || outcome === 'lost_timeout') {
+          d.phase = 'lost';
+          d.phaseTimer = 0;
+          sfx.lose();
+        } else if (outcome === 'won') {
+          d.phase = 'won';
+          d.phaseTimer = 0;
+          d.winFlash = 1.0;
+          sfx.win();
+          sfx.turbo();
+        }
+      }
+
       function handleFireGadget() {
         const p = state.player;
         if (!p || p.fireCooldown > 0) return;
@@ -9829,9 +11429,12 @@
                 p.x,
                 p.y,
                 p.angle,
-                (state.harpoonLocks || []).filter((hl) => !hl.activated).map((hl) => ({ ...hl, collected: hl.activated, ref: hl })),
-                330,
-                0.65
+                [
+                  ...(state.harpoonLocks || []).filter((hl) => !hl.activated).map((hl) => ({ ...hl, collected: hl.activated, kind: 'lock', ref: hl })),
+                  ...(state.magneticLevers || []).filter((ml) => !ml.activated).map((ml) => ({ ...ml, collected: ml.activated, kind: 'lever', ref: ml }))
+                ],
+                350,
+                0.68
               )
             : null;
           if (pulled) {
@@ -9844,7 +11447,8 @@
             sfx.harpoonPull();
             spawnDirectionalParticles(muzzleX, muzzleY, p.angle, 0.5, 10, '#67E8F9', 70, 210, 2.5, 5, 0.35, 'spark');
           } else if (lockCandidate && lockCandidate.ref) {
-            activateHarpoonLock(lockCandidate.ref);
+            if (lockCandidate.kind === 'lever') pullMagneticLever(lockCandidate.ref);
+            else activateHarpoonLock(lockCandidate.ref);
             sfx.harpoonPull();
             spawnDirectionalParticles(muzzleX, muzzleY, p.angle, 0.5, 12, '#FACC15', 75, 220, 2.5, 5.5, 0.38, 'spark');
           } else {
@@ -10016,6 +11620,10 @@
         }
         if (state.mode === 'magma_crossing') {
           updateMagmaCrossing(dt);
+          return;
+        }
+        if (state.mode === 'glider_run') {
+          updateGliderRun(dt);
           return;
         }
 
@@ -10207,6 +11815,26 @@
             p.x += cvForce.vx * dt;
             p.y += cvForce.vy * dt;
           }
+        }
+
+        // Unfrozen Cryo Lab Fans push player backwards inside corridors (N18)
+        for (let i = 0; i < state.cryoFans.length; i++) {
+          const fan = state.cryoFans[i];
+          if (fan.frozen) continue;
+          const fdx = p.x - fan.px;
+          const fdy = p.y - fan.py;
+          if (Math.abs(fdy) <= TILE * 1.65 && fdx >= -fan.range && fdx <= 42) {
+            const strength = clamp(1 - Math.abs(fdx) / (fan.range + 40), 0.25, 1.0);
+            p.x += fan.pushVx * strength * dt;
+            p.y += fan.pushVy * strength * dt;
+          }
+        }
+
+        // Glacier Armored Convoy lateral crosswind push (N19)
+        if (state.level && state.level.windPush) {
+          const wind = getGlacierConvoyWindPush(state.elapsedTime);
+          p.x += wind.vx * dt;
+          p.y += wind.vy * dt;
         }
 
         // Open-sea storm wave drift & dramatic lightning (N10)
@@ -10467,6 +12095,34 @@
                   g.targetY = p.y;
                 }
               });
+            }
+          }
+        }
+
+        // Check armored convoy cyclical laser turrets (N19)
+        for (let i = 0; i < state.laserTurrets.length; i++) {
+          const lt = state.laserTurrets[i];
+          const ltPhase = isTurretLaserFiring(state.elapsedTime, lt.phaseOffset, lt.activeDur, lt.period);
+          if (!ltPhase.active) continue;
+          const hit = pointToSegmentDist(p.x, p.y, lt.x1, lt.y1, lt.x2, lt.y2);
+          if (hit.dist < p.radius + 5) {
+            const nx = p.x - hit.cx;
+            const ny = p.y - hit.cy;
+            const nLen = Math.hypot(nx, ny) || 1;
+            const pushX = nx / nLen;
+            const pushY = ny / nLen;
+            p.x = hit.cx + pushX * (p.radius + 8);
+            p.y = hit.cy + pushY * (p.radius + 8);
+            p.vx = pushX * 240;
+            p.vy = pushY * 240;
+            if (state.laserCooldown <= 0) {
+              state.laserCooldown = 0.55;
+              sfx.laserZap();
+              state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.55);
+              state.alertsTriggered++;
+              spawnParticles(hit.cx, hit.cy, 18, '#F43F5E', 75, 220, 2.5, 5, 0.45, 'spark');
+              state.ripples.push({ x: hit.cx, y: hit.cy, r: 8, maxR: 150, life: 0.45, color: '#F43F5E' });
+              alertGuardsByNoise(p.x, p.y, 320);
             }
           }
         }
@@ -10815,6 +12471,43 @@
           }
         }
 
+        // Act V Cooling Valves & Timed Fire Geysers (N15 Expansion)
+        for (let i = 0; i < state.coolingValves.length; i++) {
+          const cv = state.coolingValves[i];
+          if (!cv.activated && Math.hypot(p.x - cv.px, p.y - cv.py) < p.radius + 18) {
+            activateCoolingValve(cv);
+          }
+        }
+        for (let i = 0; i < state.fireGeysers.length; i++) {
+          const fg = state.fireGeysers[i];
+          const fgPhase = isFireGeyserActive(state.elapsedTime, fg.phaseOffset, fg.activeDur, fg.period);
+          if (!fgPhase.active) continue;
+          if (Math.random() < 0.45) {
+            spawnParticles(fg.px, fg.py, 1, '#FB923C', 25, 95, 2.5, 5.5, 0.35, 'spark');
+          }
+          const dx = p.x - fg.px;
+          const dy = p.y - fg.py;
+          const dist = Math.hypot(dx, dy);
+          if (dist < fg.radius + p.radius - 4) {
+            const nLen = dist || 1;
+            const pushX = dx / nLen;
+            const pushY = dy / nLen;
+            p.x = fg.px + pushX * (fg.radius + p.radius + 2);
+            p.y = fg.py + pushY * (fg.radius + p.radius + 2);
+            p.vx = pushX * 260;
+            p.vy = pushY * 260;
+            if (state.steamCooldown <= 0) {
+              state.steamCooldown = 0.65;
+              sfx.laserZap();
+              state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.52);
+              state.alertsTriggered++;
+              spawnParticles(fg.px, fg.py, 18, '#FB923C', 55, 200, 3, 5.5, 0.45, 'spark');
+              state.ripples.push({ x: fg.px, y: fg.py, r: 8, maxR: 155, life: 0.45, color: '#FB923C' });
+              alertGuardsByNoise(p.x, p.y, 290);
+            }
+          }
+        }
+
         // Act V Hunter Traps (N13)
         for (let i = 0; i < state.hunterTraps.length; i++) {
           const ht = state.hunterTraps[i];
@@ -10899,33 +12592,56 @@
             }
           }
 
-          // Check hit on Act V hunter traps & N16 Fortress Cryo Nodes / Harpoon Locks
+          // Check hit on Act V hunter traps, N16 Fortress Cryo Nodes / Harpoon Locks, & N18 Cryo Fans / Magnetic Levers
           if (pr.type === 'cryo_snow') {
-            let hitCryoNode = false;
+            let hitCryoTarget = false;
             for (let cnIdx = 0; cnIdx < state.cryoNodes.length; cnIdx++) {
               const cn = state.cryoNodes[cnIdx];
               if (!cn.activated && Math.hypot(pr.x - cn.px, pr.y - cn.py) < 24 + pr.radius) {
                 activateCryoNode(cn);
-                hitCryoNode = true;
+                hitCryoTarget = true;
                 break;
               }
             }
-            if (hitCryoNode) {
+            if (!hitCryoTarget) {
+              for (let fIdx = 0; fIdx < state.cryoFans.length; fIdx++) {
+                const fan = state.cryoFans[fIdx];
+                if (fan.frozen) continue;
+                const nearCenter = Math.hypot(pr.x - fan.px, pr.y - fan.py) < 34 + pr.radius;
+                const nearTile = (fan.blockTiles || []).some((bt) => Math.hypot(pr.x - (bt.col + 0.5) * TILE, pr.y - (bt.row + 0.5) * TILE) < 24 + pr.radius);
+                if (nearCenter || nearTile) {
+                  freezeCryoFan(fan);
+                  hitCryoTarget = true;
+                  break;
+                }
+              }
+            }
+            if (hitCryoTarget) {
               state.projectiles.splice(i, 1);
               continue;
             }
           }
           if (pr.type === 'harpoon') {
-            let hitHarpoonLock = false;
+            let hitHarpoonTarget = false;
             for (let hlIdx = 0; hlIdx < state.harpoonLocks.length; hlIdx++) {
               const hl = state.harpoonLocks[hlIdx];
               if (!hl.activated && Math.hypot(pr.x - hl.px, pr.y - hl.py) < 24 + pr.radius) {
                 activateHarpoonLock(hl);
-                hitHarpoonLock = true;
+                hitHarpoonTarget = true;
                 break;
               }
             }
-            if (hitHarpoonLock) {
+            if (!hitHarpoonTarget) {
+              for (let mlIdx = 0; mlIdx < state.magneticLevers.length; mlIdx++) {
+                const ml = state.magneticLevers[mlIdx];
+                if (!ml.activated && Math.hypot(pr.x - ml.px, pr.y - ml.py) < 26 + pr.radius) {
+                  pullMagneticLever(ml);
+                  hitHarpoonTarget = true;
+                  break;
+                }
+              }
+            }
+            if (hitHarpoonTarget) {
               state.projectiles.splice(i, 1);
               continue;
             }
@@ -11716,7 +13432,10 @@
             'Superaste la Base Aurora. Rescata a los 3 pingüinos prisioneros con tu Arpón Magnético en las cavernas.',
             'Cruza el Túnel en Motonieve Turbo, energiza el Generador Geotérmico y desbloquea la Ruta Submarina.',
             'Superaste el submarino bajo el hielo. Ahora cruza los ríos de magma del Volcán Subglacial.',
-            '¡Asalto Final! Activa las 3 compuertas criogénico-magnéticas y rescata a la colonia en la Fortaleza Polar.'
+            '¡Cruzaste el volcán! Asalta la Fortaleza Polar neutralizando los nodos CRIO y cerrojos ARPÓN.',
+            'Superaste la Fortaleza Polar. Infíltrate en la Base Aérea y desactiva los 3 radares en tu Planeador Ártico.',
+            'Despejaste la Base Aérea. Desciende al Laboratorio Criogénico Subterráneo y abre su compuerta blindada.',
+            '¡Último tramo! Aborda el Convoy Blindado en movimiento sobre el glaciar y conquista el escape final.'
           ];
           ui.endBadge.textContent = state.levelIdx === 1
             ? 'SECTOR DESPEJADO · NIVEL 3 DESBLOQUEADO'
@@ -11730,8 +13449,8 @@
           state.outcome = 'victory';
           ui.endBadge.textContent = 'ACTO V · ANTÁRTIDA LIBERADA';
           ui.endBadge.style.color = '#10B981';
-          ui.endTitle.textContent = '¡Libertad Polar! Fortaleza Conquistada';
-          ui.endDesc.textContent = '¡El Agente Pingüino superó las 16 misiones, neutralizó la Fortaleza Polar y reunió a toda su colonia en la Antártida!';
+          ui.endTitle.textContent = '¡Libertad Polar! Convoy Blindado Conquistado';
+          ui.endDesc.textContent = '¡El Agente Pingüino superó las 19 misiones, conquistó el Convoy Blindado en marcha y reunió a toda su colonia en la Antártida!';
           ui.statTimeLbl.textContent = 'Tiempo Total';
           ui.btnEndPrimary.textContent = 'Volver a Jugar (Nivel 1)';
         }
@@ -11765,7 +13484,7 @@
           ui.endBadge.textContent = 'RÍO DE MAGMA SUBGLACIAL';
           ui.endBadge.style.color = '#FB923C';
           ui.endTitle.textContent = '¡Caíste en el Magma Volcánico!';
-          ui.endDesc.textContent = 'Evita los ríos de lava abiertos y completa el Subjuego de Plataformas Volcánicas para activar el Escudo Térmico.';
+          ui.endDesc.textContent = 'Completa el Subjuego del Volcán para activar el Escudo Térmico, esquiva los géiseres y activa las 2 Válvulas de Enfriamiento.';
         } else {
           ui.endBadge.textContent = isNaval ? 'LANCHA INTERCEPTADA' : 'AGENTE CAPTURADO';
           ui.endBadge.style.color = '#F43F5E';
@@ -11783,8 +13502,11 @@
             11: 'Usa el Arpón Magnético para recoger objetos sobre las grietas y libera a los 3 pingüinos para activar juntos las 4 placas de peso.',
             12: 'Entra al Hangar Subterráneo para la carrera en Motonieve y lleva los 3 Núcleos Geotérmicos al generador central.',
             13: 'Desactiva las 3 Consolas de Sonar custodiadas evitando los drones y las linternas de los guardias élite.',
-            14: 'Llega al Puente Volcánico, salta sobre plataformas para ganar el Escudo Térmico y cruza la lava sólida hacia la meta.',
-            15: 'Dispara el Cañón Criogénico a las válvulas (C) y el Arpón Magnético a los cerrojos (A) para abrir las 3 compuertas blindadas.'
+            14: 'Gana el Escudo Térmico en Plataformas del Volcán, esquiva géiseres y furgoneros térmicos y activa las 2 Válvulas de Enfriamiento.',
+            15: 'Dispara el Cañón Criogénico a las válvulas (C) y el Arpón Magnético a los cerrojos (A) para abrir las 3 compuertas blindadas.',
+            16: 'Pilota el Planeador Ártico (25s) desde la pista para desactivar los 3 radares esquivando ráfagas de viento y bengalas.',
+            17: 'Congela los 2 Ventiladores Criogénicos con CRIO [Espacio] y jala las 2 Palancas Magnéticas sobre grietas con el ARPÓN.',
+            18: 'Compensa el viento lateral sobre los vagones en marcha, esquiva las torretas láser y toma la Motonieve para saltar a la meta.'
           };
           ui.endDesc.textContent = tipsByLevel[state.levelIdx]
             || 'Usa el lanzador de peces o dardos para aturdir a los guardias y aprovecha los vehículos para cruzar zonas vigiladas.';
@@ -11819,6 +13541,10 @@
         const hasGeneratorCores = Boolean(state.centralGenerator);
         const hasSonars = state.sonarConsoles.length > 0;
         const usesThermalShield = state.level.theme === 'arctic_volcano';
+        const hasCoolingValves = state.coolingValves.length > 0;
+        const hasHangars = state.doors.some((d) => d.type === 'hangar');
+        const hasCryoLab = state.cryoFans.length > 0 || state.magneticLevers.length > 0;
+        const isConvoy = Boolean(state.level.glacierScroll);
         const hasArmoredGates = state.cryoNodes.length > 0 || state.harpoonLocks.length > 0;
         const hasSwitches = state.switches.length > 0;
         const hasPressure = state.pressureButtons.length > 0;
@@ -11829,7 +13555,7 @@
 
         ui.slotBlue.classList.toggle('hidden', isNaval || !usesBlue);
         ui.slotGold.classList.toggle('hidden', isNaval || !usesGold);
-        ui.slotSwitches.classList.toggle('hidden', !(isNaval || hasSwitches || hasHackOnly || hasBeacons || hasCagesAndPlates || hasGeneratorCores || hasSonars || usesThermalShield || hasArmoredGates));
+        ui.slotSwitches.classList.toggle('hidden', !(isNaval || hasSwitches || hasHackOnly || hasBeacons || hasCagesAndPlates || hasGeneratorCores || hasSonars || usesThermalShield || hasCoolingValves || hasHangars || hasCryoLab || isConvoy || hasArmoredGates));
         if (ui.slotTimed) ui.slotTimed.classList.toggle('hidden', isNaval || !hasPressure);
         if (ui.navalProgressWrap) {
           ui.navalProgressWrap.classList.toggle('hidden', !isNaval);
@@ -11880,9 +13606,35 @@
           ui.slotSwitches.textContent = `${off}/${state.sonarConsoles.length}`;
           ui.slotSwitches.className = 'keycard-slot' + (areAllSonarDisabled(state.sonarConsoles) ? ' collected-blue' : '');
         } else if (usesThermalShield) {
-          ui.hudAccessKicker.textContent = 'Escudo';
-          ui.slotSwitches.textContent = state.thermalShield ? 'ACTIVO' : 'INACT';
-          ui.slotSwitches.className = 'keycard-slot' + (state.thermalShield ? ' collected-blue' : '');
+          if (state.thermalShield && hasCoolingValves) {
+            const activeV = state.coolingValves.filter((v) => v.activated).length;
+            ui.hudAccessKicker.textContent = 'Válvulas';
+            ui.slotSwitches.textContent = `${activeV}/${state.coolingValves.length}`;
+            ui.slotSwitches.className = 'keycard-slot' + (activeV >= state.coolingValves.length ? ' collected-blue' : '');
+          } else {
+            ui.hudAccessKicker.textContent = 'Escudo';
+            ui.slotSwitches.textContent = state.thermalShield ? 'ACTIVO' : 'INACT';
+            ui.slotSwitches.className = 'keycard-slot' + (state.thermalShield ? ' collected-blue' : '');
+          }
+        } else if (hasHangars) {
+          const gliderZone = state.subgameZones.find((sg) => sg.kind === 'glider_radar');
+          const sgD = state.subgame && state.subgame.active && state.subgame.kind === 'glider_radar' ? state.subgame.data : null;
+          const dis = gliderZone && gliderZone.completed ? 3 : (sgD ? sgD.disabledCount : 0);
+          ui.hudAccessKicker.textContent = 'Radares';
+          ui.slotSwitches.textContent = `${dis}/3`;
+          ui.slotSwitches.className = 'keycard-slot' + (dis >= 3 ? ' collected-blue' : '');
+        } else if (hasCryoLab) {
+          const frozenFans = state.cryoFans.filter((f) => f.frozen).length;
+          const pulledLevers = state.magneticLevers.filter((l) => l.activated).length;
+          const totalCryo = state.cryoFans.length + state.magneticLevers.length;
+          const doneCryo = frozenFans + pulledLevers;
+          ui.hudAccessKicker.textContent = 'Lab Crio';
+          ui.slotSwitches.textContent = `${doneCryo}/${totalCryo}`;
+          ui.slotSwitches.className = 'keycard-slot' + (doneCryo >= totalCryo ? ' collected-blue' : '');
+        } else if (isConvoy) {
+          ui.hudAccessKicker.textContent = 'Convoy';
+          ui.slotSwitches.textContent = p.vehicle === 'snowmobile' ? 'MOTO' : 'VAGÓN';
+          ui.slotSwitches.className = 'keycard-slot' + (p.vehicle === 'snowmobile' ? ' collected-blue' : '');
         } else if (hasArmoredGates) {
           const openCount = state.doors.filter((d) => d.type === 'armored_fortress' && d.open).length;
           ui.hudAccessKicker.textContent = 'Compuertas';
@@ -11970,9 +13722,34 @@
             ? 'Sonar desactivado · ¡A la SALIDA!'
             : `Desactiva Consolas Sonar (${off}/${state.sonarConsoles.length})`;
         } else if (usesThermalShield) {
-          ui.hudObjective.textContent = state.thermalShield
-            ? '¡Escudo listo! Cruza a la SALIDA'
-            : 'Cruza Plataformas del Volcán';
+          if (!state.thermalShield) {
+            ui.hudObjective.textContent = 'Cruza Plataformas del Volcán';
+          } else if (hasCoolingValves) {
+            const activeV = state.coolingValves.filter((v) => v.activated).length;
+            ui.hudObjective.textContent = activeV >= state.coolingValves.length
+              ? '¡Compuerta abierta! A la SALIDA'
+              : `Válvulas Enfriamiento (${activeV}/${state.coolingValves.length})`;
+          } else {
+            ui.hudObjective.textContent = '¡Escudo listo! Cruza a la SALIDA';
+          }
+        } else if (hasHangars) {
+          const hangarOpen = state.doors.some((d) => d.type === 'hangar' && d.open);
+          ui.hudObjective.textContent = hangarOpen
+            ? '¡Radares OFF! Al Hangar SALIDA'
+            : 'Planeador en Pista (3 Radares)';
+        } else if (hasCryoLab) {
+          const gateOpen = state.doors.some((d) => d.type === 'cryo_lab_gate' && d.open);
+          if (gateOpen) {
+            ui.hudObjective.textContent = '¡Compuerta abierta! A la SALIDA';
+          } else {
+            const frozenFans = state.cryoFans.filter((f) => f.frozen).length;
+            const pulledLevers = state.magneticLevers.filter((l) => l.activated).length;
+            ui.hudObjective.textContent = `Ventiladores ${frozenFans}/${state.cryoFans.length} · Palancas ${pulledLevers}/${state.magneticLevers.length}`;
+          }
+        } else if (isConvoy) {
+          ui.hudObjective.textContent = p.vehicle === 'snowmobile'
+            ? '¡Salta la Rampa a la SALIDA!'
+            : 'Cruza vagones · Toma Motonieve';
         } else if (hasArmoredGates) {
           const openCount = state.doors.filter((d) => d.type === 'armored_fortress' && d.open).length;
           if (openCount >= 3) {
@@ -12112,7 +13889,13 @@
       }
 
       function isAct5OutdoorTheme(theme) {
-        return theme === 'arctic_base' || theme === 'arctic_caves' || theme === 'arctic_rig' || theme === 'arctic_volcano' || theme === 'arctic_fortress';
+        return theme === 'arctic_base'
+          || theme === 'arctic_caves'
+          || theme === 'arctic_rig'
+          || theme === 'arctic_volcano'
+          || theme === 'arctic_fortress'
+          || theme === 'arctic_airbase'
+          || theme === 'armored_convoy';
       }
 
       function bakeStaticLayer() {
@@ -12254,7 +14037,20 @@
                 sctx.stroke();
               }
             } else if (ch === ',') {
-              if (isAct5) {
+              if (theme === 'arctic_airbase') {
+                // Illuminated arctic airbase tarmac runway with dashed white/cyan centerline & threshold keys
+                sctx.fillStyle = (c + r) % 2 === 0 ? '#1E293B' : '#263449';
+                sctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
+                if (r === 18 && c % 2 === 0 && c >= 6 && c <= 60) {
+                  sctx.fillStyle = 'rgba(224, 242, 254, 0.78)';
+                  sctx.fillRect(x + 8, y + TILE - 3, TILE - 16, 4);
+                }
+                if ((c === 5 || c === 62) && r >= 16 && r <= 21) {
+                  sctx.fillStyle = 'rgba(248, 250, 252, 0.65)';
+                  sctx.fillRect(x + 10, y + 6, TILE - 20, 8);
+                  sctx.fillRect(x + 10, y + TILE - 14, TILE - 20, 8);
+                }
+              } else if (isAct5) {
                 // Compacted snow trail / packed vehicle track
                 sctx.fillStyle = (c + r) % 2 === 0 ? '#CFE8FA' : '#D9EEFC';
                 sctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
@@ -12332,6 +14128,35 @@
                   sctx.fillRect(x + 6, y + 6, 3, 3);
                   sctx.fillRect(x + TILE - 9, y + TILE - 9, 3, 3);
                 }
+              } else if (theme === 'cryo_lab') {
+                // Subterranean Cryo Lab obsidian-tech tiles with glowing cyan circuit seams
+                sctx.fillStyle = (c + r) % 2 === 0 ? '#0A1322' : '#0D182B';
+                sctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
+                sctx.strokeStyle = 'rgba(34, 211, 238, 0.14)';
+                sctx.lineWidth = 1;
+                sctx.strokeRect(x + 2, y + 2, TILE - 4, TILE - 4);
+                if ((c + r) % 4 === 0) {
+                  sctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
+                  sctx.fillRect(x + 8, y + TILE * 0.5 - 1, TILE - 16, 2);
+                }
+              } else if (theme === 'armored_convoy') {
+                // Moving Armored Convoy riveted steel train decks + hazard edges along chasm
+                sctx.fillStyle = (c + r) % 2 === 0 ? '#1E293B' : '#273549';
+                sctx.fillRect(x, y, TILE + 0.5, TILE + 0.5);
+                sctx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
+                sctx.lineWidth = 1;
+                sctx.strokeRect(x + 2, y + 2, TILE - 4, TILE - 4);
+                if ((c + r) % 2 === 0) {
+                  sctx.fillStyle = 'rgba(203, 213, 225, 0.22)';
+                  sctx.fillRect(x + 6, y + 6, 3, 3);
+                  sctx.fillRect(x + TILE - 9, y + TILE - 9, 3, 3);
+                }
+                const isChasm = (rr, cc) => state.grid[rr] && state.grid[rr][cc] === 'C';
+                sctx.fillStyle = 'rgba(245, 158, 11, 0.72)';
+                if (isChasm(r - 1, c)) sctx.fillRect(x, y, TILE, 4);
+                if (isChasm(r + 1, c)) sctx.fillRect(x, y + TILE - 4, TILE, 4);
+                if (isChasm(r, c - 1)) sctx.fillRect(x, y, 4, TILE);
+                if (isChasm(r, c + 1)) sctx.fillRect(x + TILE - 4, y, 4, TILE);
               } else if (theme === 'arctic_volcano') {
                 // Dark volcanic basalt stone floor contrasting luminous ice walls & magma
                 sctx.fillStyle = (c + r) % 2 === 0 ? '#111827' : '#161F33';
@@ -12567,8 +14392,32 @@
               sctx.fillRect(x, y - wallHeight, TILE + 0.5, 2.5);
               continue;
             }
+            if (theme === 'cryo_lab') {
+              sctx.fillStyle = '#0F172A';
+              sctx.fillRect(x, y + TILE - wallHeight, TILE + 0.5, wallHeight);
+              const labGrad = sctx.createLinearGradient(x, y - wallHeight, x, y + TILE - wallHeight);
+              labGrad.addColorStop(0, '#334155');
+              labGrad.addColorStop(1, '#1E293B');
+              sctx.fillStyle = labGrad;
+              sctx.fillRect(x, y - wallHeight, TILE + 0.5, TILE);
+              sctx.fillStyle = '#22D3EE';
+              sctx.fillRect(x, y - wallHeight, TILE + 0.5, 2.5);
+              continue;
+            }
             if (isAct5) {
-              const isRigSteel = (theme === 'arctic_rig' || theme === 'arctic_fortress') && r >= 2 && r <= state.rows - 3 && c >= 2 && c <= state.cols - 3;
+              if (theme === 'armored_convoy') {
+                sctx.fillStyle = '#1E293B';
+                sctx.fillRect(x, y + TILE - wallHeight, TILE + 0.5, wallHeight);
+                const cvGrad = sctx.createLinearGradient(x, y - wallHeight, x, y + TILE - wallHeight);
+                cvGrad.addColorStop(0, '#64748B');
+                cvGrad.addColorStop(1, '#334155');
+                sctx.fillStyle = cvGrad;
+                sctx.fillRect(x, y - wallHeight, TILE + 0.5, TILE);
+                sctx.fillStyle = '#F59E0B';
+                sctx.fillRect(x, y - wallHeight, TILE + 0.5, 3);
+                continue;
+              }
+              const isRigSteel = (theme === 'arctic_rig' || theme === 'arctic_fortress' || theme === 'arctic_airbase') && r >= 2 && r <= state.rows - 3 && c >= 2 && c <= state.cols - 3;
               sctx.fillStyle = theme === 'arctic_volcano'
                 ? '#0284C7'
                 : (isRigSteel ? '#334155' : '#6495C8');
@@ -14831,6 +16680,332 @@
         }
       }
 
+      // LEVEL 17 FULLSCREEN RENDERER: ARCTIC GLIDER RADAR ASSAULT (25s)
+      function renderGliderRunFullscreen(w, h) {
+        const sg = state.subgame;
+        if (!sg || !sg.active || !sg.data) return;
+        const d = sg.data;
+        const now = performance.now() * 0.001;
+        const fontFamily = getComputedStyle(document.body).fontFamily;
+
+        // 1. Arctic twilight + aurora sky backdrop
+        const sky = ctx.createLinearGradient(0, 0, 0, h);
+        sky.addColorStop(0, '#040C1E');
+        sky.addColorStop(0.55, '#0B2447');
+        sky.addColorStop(1, '#133B6E');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h);
+
+        // Soft aurora ribbons across the upper sky
+        for (let b = 0; b < 3; b++) {
+          const ag = ctx.createLinearGradient(0, h * (0.08 + b * 0.12), w, h * (0.24 + b * 0.14));
+          ag.addColorStop(0, 'rgba(34, 211, 238, 0.02)');
+          ag.addColorStop(0.5, b === 1 ? 'rgba(52, 211, 153, 0.14)' : 'rgba(56, 189, 248, 0.13)');
+          ag.addColorStop(1, 'rgba(167, 139, 250, 0.03)');
+          ctx.fillStyle = ag;
+          ctx.beginPath();
+          ctx.moveTo(0, h * (0.1 + b * 0.11));
+          for (let px = 0; px <= w; px += 90) {
+            ctx.lineTo(px, h * (0.12 + b * 0.1) + Math.sin(px * 0.006 + now * 1.1 + b) * 18);
+          }
+          ctx.lineTo(w, h * (0.26 + b * 0.11));
+          ctx.lineTo(0, h * (0.26 + b * 0.11));
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        const scaleY = h / d.skyH;
+        const viewWorldW = w / scaleY;
+        const camLeft = clamp(d.playerX - viewWorldW * 0.28, 0, Math.max(0, d.runwayEnd + 240 - viewWorldW));
+
+        ctx.save();
+        ctx.scale(scaleY, scaleY);
+        const shake = d.shakeTrauma * d.shakeTrauma * 9;
+        const sx = shake > 0.2 ? (Math.random() - 0.5) * shake : 0;
+        const sy = shake > 0.2 ? (Math.random() - 0.5) * shake : 0;
+        ctx.translate(-camLeft + sx, sy);
+
+        // Airspace ceiling & runway strip below skyBot
+        ctx.fillStyle = 'rgba(2, 6, 23, 0.45)';
+        ctx.fillRect(camLeft - 20, 0, viewWorldW + 40, d.skyTop);
+        ctx.fillStyle = '#0B1628';
+        ctx.fillRect(camLeft - 20, d.skyBot, viewWorldW + 40, d.skyH - d.skyBot);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(camLeft - 20, d.skyTop); ctx.lineTo(camLeft + viewWorldW + 20, d.skyTop);
+        ctx.moveTo(camLeft - 20, d.skyBot); ctx.lineTo(camLeft + viewWorldW + 20, d.skyBot);
+        ctx.stroke();
+
+        // Runway guide beacons below skyBot
+        const firstBeacon = Math.floor(camLeft / 120) * 120;
+        for (let bx = firstBeacon; bx < camLeft + viewWorldW + 120; bx += 120) {
+          const isAmber = Math.floor(bx / 120) % 4 === 0;
+          ctx.fillStyle = isAmber ? 'rgba(245, 158, 11, 0.9)' : 'rgba(56, 189, 248, 0.85)';
+          ctx.beginPath();
+          ctx.arc(bx, d.skyBot + 16, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = isAmber ? 'rgba(245, 158, 11, 0.14)' : 'rgba(56, 189, 248, 0.14)';
+          ctx.beginPath();
+          ctx.arc(bx, d.skyBot + 16, 15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(224, 242, 254, 0.4)';
+          ctx.fillRect(bx - 18, d.skyBot + 36, 36, 4);
+        }
+
+        // Boost Rings
+        for (let i = 0; i < d.boostRings.length; i++) {
+          const r = d.boostRings[i];
+          if (r.collected || r.x < camLeft - 45 || r.x > camLeft + viewWorldW + 45) continue;
+          ctx.save();
+          ctx.translate(r.x, r.y);
+          ctx.strokeStyle = '#22D3EE';
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, r.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(34, 211, 238, 0.18)';
+          ctx.fill();
+          ctx.fillStyle = '#ECFEFF';
+          ctx.beginPath();
+          ctx.moveTo(8, 0); ctx.lineTo(-6, -7); ctx.lineTo(-2, 0); ctx.lineTo(-6, 7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Air Hazards: wind_gust streams + thermal flares
+        for (let i = 0; i < d.hazards.length; i++) {
+          const hz = d.hazards[i];
+          if (hz.x < camLeft - 90 || hz.x > camLeft + viewWorldW + 90) continue;
+          ctx.save();
+          ctx.translate(hz.x, hz.y);
+          if (hz.kind === 'wind_gust') {
+            const hw = (hz.w || 110) * 0.5;
+            const hh = (hz.h || 54) * 0.5;
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+            roundRect(ctx, -hw, -hh, hw * 2, hh * 2, 12);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(125, 211, 252, 0.55)';
+            ctx.lineWidth = 1.6;
+            ctx.setLineDash([6, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#BAE6FD';
+            ctx.lineWidth = 2;
+            const dirY = (hz.vy || 0) >= 0 ? 1 : -1;
+            for (let s = -1; s <= 1; s++) {
+              const sxw = s * 28;
+              ctx.beginPath();
+              ctx.moveTo(sxw + 10, -dirY * 14);
+              ctx.lineTo(sxw - 10, dirY * 14);
+              ctx.stroke();
+            }
+          } else {
+            const pulse = 0.78 + 0.22 * Math.sin(now * 9 + hz.id);
+            ctx.fillStyle = `rgba(244, 63, 94, ${(0.28 * pulse).toFixed(2)})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, hz.radius + 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FB923C';
+            ctx.beginPath();
+            ctx.arc(0, 0, hz.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FEF08A';
+            ctx.beginPath();
+            ctx.arc(0, 0, hz.radius * 0.52, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 3 Radar Towers to Disable
+        for (let i = 0; i < d.towers.length; i++) {
+          const tw = d.towers[i];
+          if (tw.x < camLeft - 90 || tw.x > camLeft + viewWorldW + 90) continue;
+          ctx.save();
+          ctx.translate(tw.x, tw.y);
+          // Ground mast linking to runway below
+          ctx.strokeStyle = tw.disabled ? 'rgba(52, 211, 153, 0.35)' : 'rgba(244, 63, 94, 0.45)';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(0, tw.radius);
+          ctx.lineTo(0, d.skyBot - tw.y + 8);
+          ctx.stroke();
+
+          ctx.fillStyle = tw.disabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.22)';
+          ctx.beginPath();
+          ctx.arc(0, 0, tw.radius + 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = tw.disabled ? '#34D399' : '#FB7185';
+          ctx.lineWidth = 3;
+          ctx.setLineDash(tw.disabled ? [] : [7, 5]);
+          ctx.beginPath();
+          ctx.arc(0, 0, tw.radius, now * (tw.disabled ? 0 : 1.8), now * (tw.disabled ? 0 : 1.8) + Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#0F172A';
+          ctx.beginPath();
+          ctx.arc(0, 0, 17, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = tw.disabled ? '#10B981' : '#38BDF8';
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+
+          ctx.fillStyle = tw.disabled ? '#A7F3D0' : '#E0F2FE';
+          ctx.font = '900 10px ' + fontFamily;
+          ctx.textAlign = 'center';
+          ctx.fillText(tw.disabled ? 'OFF' : `R${tw.id}`, 0, 3.5);
+          ctx.restore();
+        }
+
+        // Contrails & Spark Particles
+        for (let i = 0; i < d.trail.length; i++) {
+          const t = d.trail[i];
+          const a = clamp(t.life / t.maxLife, 0, 1) * 0.72;
+          ctx.fillStyle = t.boost ? `rgba(34, 211, 238, ${a})` : `rgba(186, 230, 253, ${a * 0.7})`;
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, t.r * (t.life / t.maxLife), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (let i = 0; i < d.particles.length; i++) {
+          const pt = d.particles[i];
+          ctx.save();
+          ctx.globalAlpha = clamp(pt.life / pt.maxLife, 0, 1);
+          ctx.fillStyle = pt.color;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Arctic Stealth Glider + Agent Penguin
+        ctx.save();
+        if (d.blinkTimer > 0 && Math.floor(d.blinkTimer * 15) % 2 === 0) {
+          ctx.globalAlpha = 0.45;
+        }
+        ctx.translate(d.playerX, d.playerY);
+        ctx.rotate(d.angle);
+        // Delta Glider Wings
+        ctx.fillStyle = '#0E7490';
+        ctx.beginPath();
+        ctx.moveTo(22, 0);
+        ctx.lineTo(-16, -21);
+        ctx.lineTo(-10, -4);
+        ctx.lineTo(-10, 4);
+        ctx.lineTo(-16, 21);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = d.boostTimer > 0 ? '#67E8F9' : '#38BDF8';
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+        // Thruster flame
+        ctx.fillStyle = d.boostTimer > 0 ? '#22D3EE' : '#38BDF8';
+        ctx.beginPath();
+        ctx.moveTo(-12, -5);
+        ctx.lineTo(-24 - (d.boostTimer > 0 ? 10 : 0) - Math.sin(now * 32) * 3, 0);
+        ctx.lineTo(-12, 5);
+        ctx.closePath();
+        ctx.fill();
+        // Penguin cockpit
+        ctx.fillStyle = '#0F172A';
+        ctx.beginPath();
+        ctx.ellipse(2, 0, 9, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#22D3EE';
+        roundRect(ctx, 3, -4.5, 5, 9, 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.restore(); // end camera
+
+        if (d.hurtFlash > 0) {
+          ctx.fillStyle = `rgba(244, 63, 94, ${(d.hurtFlash * 0.42).toFixed(2)})`;
+          ctx.fillRect(0, 0, w, h);
+        }
+        if (d.winFlash > 0) {
+          ctx.fillStyle = `rgba(52, 211, 153, ${(d.winFlash * 0.4).toFixed(2)})`;
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        // Top-Left Safe-Area HUD (Timer + Radars Disabled + HP)
+        const actionsEl = document.querySelector('.hud-actions');
+        const actionsRect = actionsEl ? actionsEl.getBoundingClientRect() : null;
+        const safeLeft = 14;
+        const hudTop = actionsRect && actionsRect.height > 0 ? Math.max(12, actionsRect.top) : 14;
+        const maxAvailW = actionsRect && actionsRect.left > 160 ? actionsRect.left - safeLeft - 14 : w - 190;
+        const hudW = clamp(maxAvailW, 195, 315);
+
+        ctx.fillStyle = 'rgba(4, 11, 28, 0.88)';
+        roundRect(ctx, safeLeft, hudTop, hudW, 56, 12);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#7DD3FC';
+        ctx.font = '800 9px ' + fontFamily;
+        ctx.textAlign = 'left';
+        ctx.fillText('NIVEL 17 · PLANEADOR ÁRTICO', safeLeft + 11, hudTop + 15);
+        ctx.fillStyle = d.timeLeft <= 6 ? '#FDA4AF' : '#ECFEFF';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${d.timeLeft.toFixed(1)}s · RADARES ${d.disabledCount}/${d.requiredTowers}`, safeLeft + hudW - 11, hudTop + 15);
+
+        const barX = safeLeft + 11;
+        const barW = hudW - 22;
+        const radPct = clamp(d.disabledCount / Math.max(1, d.requiredTowers), 0, 1);
+        ctx.fillStyle = '#1E293B';
+        roundRect(ctx, barX, hudTop + 23, barW, 8, 4);
+        ctx.fill();
+        ctx.fillStyle = '#38BDF8';
+        roundRect(ctx, barX, hudTop + 23, Math.max(8, barW * radPct), 8, 4);
+        ctx.fill();
+
+        for (let s = 0; s < d.maxHp; s++) {
+          ctx.fillStyle = s < d.hp ? '#34D399' : '#1E293B';
+          ctx.beginPath();
+          ctx.arc(barX + s * 18 + 6, hudTop + 44, 5.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#BAE6FD';
+        ctx.font = '700 9.5px ' + fontFamily;
+        ctx.textAlign = 'right';
+        ctx.fillText(state.touchEnabled ? 'Joystick: Pilota' : 'WASD/Flechas: Pilota', safeLeft + hudW - 11, hudTop + 47);
+
+        if (d.phase === 'lost') {
+          const bw = Math.min(340, w - 32);
+          ctx.fillStyle = 'rgba(15, 10, 24, 0.9)';
+          roundRect(ctx, w * 0.5 - bw * 0.5, h * 0.42 - 38, bw, 76, 14);
+          ctx.fill();
+          ctx.strokeStyle = '#F43F5E';
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+          ctx.fillStyle = '#FDA4AF';
+          ctx.font = '900 17px ' + fontFamily;
+          ctx.textAlign = 'center';
+          ctx.fillText(d.hp <= 0 ? '¡PLANEADOR DERRIBADO!' : '¡TIEMPO AGOTADO!', w * 0.5, h * 0.42 - 6);
+          ctx.fillStyle = '#E2E8F0';
+          ctx.font = '700 12px ' + fontFamily;
+          ctx.fillText('Reiniciando despegue...', w * 0.5, h * 0.42 + 18);
+        } else if (d.phase === 'won') {
+          const bw = Math.min(350, w - 32);
+          ctx.fillStyle = 'rgba(4, 20, 40, 0.9)';
+          roundRect(ctx, w * 0.5 - bw * 0.5, h * 0.42 - 38, bw, 76, 14);
+          ctx.fill();
+          ctx.strokeStyle = '#34D399';
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+          ctx.fillStyle = '#A7F3D0';
+          ctx.font = '900 17px ' + fontFamily;
+          ctx.textAlign = 'center';
+          ctx.fillText('¡RADARES DESACTIVADOS!', w * 0.5, h * 0.42 - 6);
+          ctx.fillStyle = '#E0F2FE';
+          ctx.font = '700 12px ' + fontFamily;
+          ctx.fillText('Compuerta del Hangar Abierta', w * 0.5, h * 0.42 + 18);
+        }
+      }
+
       function renderScene() {
         const w = state.viewW;
         const h = state.viewH;
@@ -14872,12 +17047,17 @@
           ctx.restore();
           return;
         }
+        if (activeFsKind === 'glider_run') {
+          renderGliderRunFullscreen(w, h);
+          ctx.restore();
+          return;
+        }
 
         const theme = state.level ? state.level.theme : 'arctic';
         const isAct5 = isAct5OutdoorTheme(theme);
         ctx.fillStyle = theme === 'arctic_volcano'
           ? '#1A0B0E'
-          : (theme === 'arctic_sub'
+          : (theme === 'arctic_sub' || theme === 'cryo_lab'
             ? '#081222'
             : (isAct5
               ? '#164E7A'
@@ -14898,6 +17078,7 @@
 
         // Single drawImage call for all static floor + walls
         ctx.drawImage(state.staticCanvas, 0, -16);
+        if (state.level && state.level.glacierScroll) drawGlacierScrollChasm();
 
         drawWaterRipples();
         drawMagmaTilesAnimated();
@@ -14922,6 +17103,7 @@
         drawGeothermalCoresAndGenerator();
         drawSonarConsoles();
         drawFortressNodesAndColony();
+        drawAct5ExpansionObjects();
         drawSubgameZones();
         drawEngines();
         drawBridgeConsoles();
@@ -15554,7 +17736,7 @@
         state.floorCables.forEach((cable) => {
           const pts = cable.points;
           if (!pts || pts.length < 2) return;
-          const active = !!cable.source.active;
+          const active = !!(cable.source.active || cable.source.activated || cable.source.frozen);
           const isTimed = cable.kind === 'timed';
 
           ctx.save();
@@ -15701,7 +17883,7 @@
               ? '#A78BFA'
               : (sg.kind === 'warehouse_rushhour'
                 ? '#F59E0B'
-                : (sg.kind === 'snowmobile_tunnel'
+                : (sg.kind === 'snowmobile_tunnel' || sg.kind === 'glider_radar'
                   ? '#38BDF8'
                   : (sg.kind === 'magma_platforms' ? '#FB923C' : '#10B981'))));
           const pulse = 0.72 + 0.28 * Math.sin(now + i);
@@ -15741,7 +17923,9 @@
                   ? 'CINTA'
                   : (sg.kind === 'snowmobile_tunnel'
                     ? 'MOTO'
-                    : (sg.kind === 'magma_platforms' ? 'LAVA' : 'JEFE')))));
+                    : (sg.kind === 'glider_radar'
+                      ? 'AVIÓN'
+                      : (sg.kind === 'magma_platforms' ? 'LAVA' : 'JEFE'))))));
           ctx.fillText(tag, 0, 3.5);
           ctx.restore();
         }
@@ -16754,27 +18938,39 @@
           const cg = state.centralGenerator;
           drawRadialHalo(cg.px, cg.py, cg.active ? 115 : 74, cg.active ? 'rgba(16, 185, 129, 0.34)' : 'rgba(56, 189, 248, 0.28)');
         }
+        for (let i = 0; i < state.coolingValves.length; i++) {
+          const cv = state.coolingValves[i];
+          drawRadialHalo(cv.px, cv.py, 58, cv.activated ? 'rgba(16, 185, 129, 0.34)' : 'rgba(56, 189, 248, 0.3)');
+        }
+        for (let i = 0; i < state.cryoFans.length; i++) {
+          const cf = state.cryoFans[i];
+          drawRadialHalo(cf.px, cf.py, 64, cf.frozen ? 'rgba(186, 230, 253, 0.34)' : 'rgba(34, 211, 238, 0.32)');
+        }
+        for (let i = 0; i < state.magneticLevers.length; i++) {
+          const ml = state.magneticLevers[i];
+          drawRadialHalo(ml.px, ml.py, 56, ml.activated ? 'rgba(16, 185, 129, 0.34)' : 'rgba(250, 204, 21, 0.3)');
+        }
         for (let i = 0; i < state.pressureButtons.length; i++) {
           const pb = state.pressureButtons[i];
           drawRadialHalo(pb.px, pb.py, 62, pb.active ? 'rgba(16, 185, 129, 0.38)' : 'rgba(245, 158, 11, 0.32)');
         }
         for (let i = 0; i < state.doors.length; i++) {
           const d = state.doors[i];
-          if (!d.open && (d.type === 'hack' || d.type === 'timed' || d.type === 'circuit' || d.type === 'beacons' || d.type === 'weight_rescue' || d.type === 'generator' || d.type === 'master_generator' || d.type === 'sonar' || d.type === 'thermal_shield' || d.type === 'armored_fortress')) {
+          if (!d.open && (d.type === 'hack' || d.type === 'timed' || d.type === 'circuit' || d.type === 'beacons' || d.type === 'weight_rescue' || d.type === 'generator' || d.type === 'master_generator' || d.type === 'sonar' || d.type === 'thermal_shield' || d.type === 'cooling_valves' || d.type === 'hangar' || d.type === 'cryo_lab_gate' || d.type === 'armored_fortress')) {
             const cRgba = d.type === 'circuit'
               ? 'rgba(167, 139, 250, 0.28)'
               : (d.type === 'beacons' || d.type === 'thermal_shield'
                 ? 'rgba(251, 146, 60, 0.26)'
                 : (d.type === 'weight_rescue'
                   ? 'rgba(52, 211, 153, 0.26)'
-                  : (d.type === 'generator' || d.type === 'master_generator' || d.type === 'sonar' ? 'rgba(56, 189, 248, 0.28)' : (d.type === 'hack' ? 'rgba(6, 182, 212, 0.24)' : 'rgba(245, 158, 11, 0.24)'))));
+                  : (d.type === 'generator' || d.type === 'master_generator' || d.type === 'sonar' || d.type === 'cooling_valves' || d.type === 'hangar' || d.type === 'cryo_lab_gate' ? 'rgba(56, 189, 248, 0.28)' : (d.type === 'hack' ? 'rgba(6, 182, 212, 0.24)' : 'rgba(245, 158, 11, 0.24)'))));
             drawRadialHalo(d.x, d.y, 52, cRgba);
           }
         }
         for (let i = 0; i < state.subgameZones.length; i++) {
           const sg = state.subgameZones[i];
           if (sg.completed) continue;
-          const sgRgba = sg.kind === 'aquarium_shark' || sg.kind === 'snowmobile_tunnel'
+          const sgRgba = sg.kind === 'aquarium_shark' || sg.kind === 'snowmobile_tunnel' || sg.kind === 'glider_radar'
             ? 'rgba(34, 211, 238, 0.34)'
             : (sg.kind === 'metro_circuits'
               ? 'rgba(167, 139, 250, 0.34)'
@@ -17426,6 +19622,65 @@
               ctx.fillStyle = '#475569';
               ctx.fillRect(-18, -4, 36, 8);
               break;
+            case 'runway_light_blue': {
+              const pulse = 0.65 + 0.35 * Math.sin(now * 2.5 + i * 0.4);
+              ctx.fillStyle = `rgba(56, 189, 248, ${(0.22 * pulse).toFixed(2)})`;
+              ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+              ctx.fillStyle = '#38BDF8';
+              ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+              break;
+            }
+            case 'runway_light_amber': {
+              const pulse = 0.65 + 0.35 * Math.sin(now * 3.0 + i * 0.6);
+              ctx.fillStyle = `rgba(245, 158, 11, ${(0.24 * pulse).toFixed(2)})`;
+              ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+              ctx.fillStyle = '#F59E0B';
+              ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill();
+              break;
+            }
+            case 'cargo_plane':
+              drawSoftGroundShadow(3, 8, 42, 22);
+              ctx.fillStyle = '#334155';
+              // Swept cargo wings
+              ctx.beginPath();
+              ctx.moveTo(-8, -42); ctx.lineTo(14, -10); ctx.lineTo(14, 10); ctx.lineTo(-8, 42);
+              ctx.lineTo(-18, 38); ctx.lineTo(-4, 8); ctx.lineTo(-4, -8); ctx.lineTo(-18, -38);
+              ctx.closePath(); ctx.fill();
+              // Tail stabilizer
+              ctx.fillStyle = '#475569';
+              ctx.beginPath();
+              ctx.moveTo(-34, -16); ctx.lineTo(-22, -4); ctx.lineTo(-22, 4); ctx.lineTo(-34, 16);
+              ctx.closePath(); ctx.fill();
+              // Fuselage
+              ctx.fillStyle = '#64748B';
+              roundRect(ctx, -38, -11, 78, 22, 11); ctx.fill();
+              ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 1.6; ctx.stroke();
+              // Cockpit windshield
+              ctx.fillStyle = '#22D3EE';
+              roundRect(ctx, 22, -6, 11, 12, 4); ctx.fill();
+              break;
+            case 'cryo_capsule':
+              ctx.fillStyle = '#0F172A';
+              roundRect(ctx, -14, -14, 28, 28, 8); ctx.fill();
+              ctx.fillStyle = 'rgba(34, 211, 238, 0.36)';
+              ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+              ctx.strokeStyle = '#67E8F9'; ctx.lineWidth = 2; ctx.stroke();
+              ctx.fillStyle = '#ECFEFF';
+              ctx.beginPath(); ctx.arc(-3, -3, 3, 0, Math.PI * 2); ctx.fill();
+              break;
+            case 'convoy_coupler':
+              // Heavy armored inter-car steel coupler & side hazard rail
+              ctx.fillStyle = '#0F172A';
+              ctx.fillRect(-18, -22, 36, 44);
+              ctx.fillStyle = '#475569';
+              ctx.fillRect(-14, -18, 28, 36);
+              ctx.strokeStyle = '#F59E0B';
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.moveTo(-14, -18); ctx.lineTo(14, -18);
+              ctx.moveTo(-14, 18); ctx.lineTo(14, 18);
+              ctx.stroke();
+              break;
           }
           ctx.restore();
         }
@@ -17507,6 +19762,187 @@
           ctx.fillStyle = '#FBBF24';
           ctx.beginPath(); ctx.moveTo(8, -2.5); ctx.lineTo(13, 0); ctx.lineTo(8, 2.5); ctx.closePath(); ctx.fill();
           ctx.restore();
+        }
+      }
+
+      function drawGlacierScrollChasm() {
+        const now = performance.now() * 0.001;
+        const speed = 420;
+        const off = (now * speed) % 240;
+        for (let r = 0; r < state.rows; r++) {
+          for (let c = 0; c < state.cols; c++) {
+            if (state.grid[r][c] !== 'C') continue;
+            const x = c * TILE;
+            const y = r * TILE;
+            if ((c + r) % 2 === 0) {
+              const sx = x + ((TILE - (off * 0.25 + c * 17) % TILE));
+              ctx.strokeStyle = 'rgba(186, 230, 253, 0.34)';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(sx, y + (r * 13) % (TILE - 8) + 4);
+              ctx.lineTo(sx - 18, y + (r * 13) % (TILE - 8) + 4);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      function drawAct5ExpansionObjects() {
+        const now = performance.now() * 0.001;
+        const fontFamily = getComputedStyle(document.body).fontFamily;
+
+        // 1. N15 Timed Volcanic Fire Geysers
+        for (let i = 0; i < state.fireGeysers.length; i++) {
+          const fg = state.fireGeysers[i];
+          const active = isFireGeyserActive(state.elapsedTime, fg.phaseOffset, fg.activeDur, fg.period);
+          ctx.save();
+          ctx.translate(fg.px, fg.py);
+          ctx.fillStyle = '#1C1917';
+          ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = active ? '#FB923C' : '#78350F';
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+          if (active) {
+            const pulse = 0.82 + 0.18 * Math.sin(now * 24 + i);
+            ctx.fillStyle = 'rgba(249, 115, 22, 0.36)';
+            ctx.beginPath(); ctx.arc(0, 0, 32 * pulse, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#F97316';
+            ctx.beginPath(); ctx.arc(0, 0, 15 * pulse, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#FEF08A';
+            ctx.beginPath(); ctx.arc(0, 0, 7.5 * pulse, 0, Math.PI * 2); ctx.fill();
+          } else {
+            ctx.fillStyle = 'rgba(251, 146, 60, 0.45)';
+            ctx.beginPath(); ctx.arc(0, 0, 6 + Math.sin(now * 6 + i) * 2, 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 2. N15 Cooling Valves
+        for (let i = 0; i < state.coolingValves.length; i++) {
+          const cv = state.coolingValves[i];
+          ctx.save();
+          ctx.translate(cv.px, cv.py);
+          drawSoftGroundShadow(1, 5, 16, 11);
+          ctx.fillStyle = '#0F172A';
+          ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = cv.activated ? '#34D399' : '#38BDF8';
+          ctx.lineWidth = 2.6;
+          ctx.stroke();
+          // Valve wheel spokes
+          ctx.save();
+          if (!cv.activated) ctx.rotate(Math.sin(now * 2 + i) * 0.15);
+          ctx.strokeStyle = cv.activated ? '#A7F3D0' : '#BAE6FD';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
+          ctx.moveTo(0, -10); ctx.lineTo(0, 10);
+          ctx.stroke();
+          ctx.restore();
+          ctx.fillStyle = cv.activated ? '#10B981' : '#0284C7';
+          ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#F8FAFC';
+          ctx.font = '900 8.5px ' + fontFamily;
+          ctx.textAlign = 'center';
+          ctx.fillText(`V${cv.index}`, 0, -21);
+          ctx.restore();
+        }
+
+        // 3. N18 Cryo Corridor Fans + Airflow / Ice Block
+        for (let i = 0; i < state.cryoFans.length; i++) {
+          const fan = state.cryoFans[i];
+          // Corridor airflow streaks when active, ice block barrier outline when frozen
+          if (!fan.frozen) {
+            for (let s = 0; s < 4; s++) {
+              const prog = ((now * 2.2 + s * 0.25) % 1);
+              const ax = fan.px - prog * fan.range;
+              const ay = fan.py + ((s % 2 === 0 ? -1 : 1) * 18);
+              ctx.strokeStyle = `rgba(103, 232, 249, ${(1 - prog) * 0.6})`;
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.moveTo(ax + 16, ay); ctx.lineTo(ax - 16, ay);
+              ctx.stroke();
+            }
+          } else {
+            ctx.fillStyle = 'rgba(186, 230, 253, 0.26)';
+            roundRect(ctx, fan.px - 20, fan.py - 54, 40, 108, 8);
+            ctx.fill();
+            ctx.strokeStyle = '#E0F2FE';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+          ctx.save();
+          ctx.translate(fan.px, fan.py);
+          ctx.fillStyle = '#0F172A';
+          ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = fan.frozen ? '#BAE6FD' : '#22D3EE';
+          ctx.lineWidth = 2.6;
+          ctx.stroke();
+          ctx.save();
+          ctx.rotate(fan.frozen ? 0.35 : now * 11);
+          ctx.fillStyle = fan.frozen ? '#E0F2FE' : '#38BDF8';
+          for (let b = 0; b < 4; b++) {
+            ctx.rotate(Math.PI * 0.5);
+            roundRect(ctx, 2, -4, 13, 8, 3);
+            ctx.fill();
+          }
+          ctx.restore();
+          ctx.fillStyle = fan.frozen ? '#34D399' : '#0EA5E9';
+          ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+
+        // 4. N18 Remote Magnetic Levers
+        for (let i = 0; i < state.magneticLevers.length; i++) {
+          const ml = state.magneticLevers[i];
+          ctx.save();
+          ctx.translate(ml.px, ml.py);
+          ctx.fillStyle = '#0F172A';
+          roundRect(ctx, -15, -15, 30, 30, 6); ctx.fill();
+          ctx.strokeStyle = ml.activated ? '#34D399' : '#FACC15';
+          ctx.lineWidth = 2.4;
+          ctx.stroke();
+          ctx.strokeStyle = ml.activated ? '#A7F3D0' : '#FEF08A';
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.moveTo(0, 8);
+          ctx.lineTo(ml.activated ? 9 : -9, -8);
+          ctx.stroke();
+          ctx.fillStyle = ml.activated ? '#10B981' : '#F59E0B';
+          ctx.beginPath(); ctx.arc(ml.activated ? 9 : -9, -8, 4.5, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+
+        // 5. N19 Armored Convoy Cyclical Laser Turrets
+        for (let i = 0; i < state.laserTurrets.length; i++) {
+          const lt = state.laserTurrets[i];
+          const firing = isTurretLaserFiring(state.elapsedTime, lt.phaseOffset, lt.activeDur, lt.period);
+          [
+            { x: lt.x1, y: lt.y1 },
+            { x: lt.x2, y: lt.y2 }
+          ].forEach((pt) => {
+            ctx.fillStyle = '#1E293B';
+            ctx.beginPath(); ctx.arc(pt.x, pt.y, 7.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = firing ? '#F43F5E' : '#F59E0B';
+            ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.6, 0, Math.PI * 2); ctx.fill();
+          });
+          if (firing) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.strokeStyle = 'rgba(244, 63, 94, 0.58)';
+            ctx.lineWidth = 11;
+            ctx.beginPath(); ctx.moveTo(lt.x1, lt.y1); ctx.lineTo(lt.x2, lt.y2); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 228, 230, 0.95)';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(lt.x1, lt.y1); ctx.lineTo(lt.x2, lt.y2); ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.save();
+            ctx.setLineDash([5, 6]);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.35)';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.moveTo(lt.x1, lt.y1); ctx.lineTo(lt.x2, lt.y2); ctx.stroke();
+            ctx.restore();
+          }
         }
       }
 
@@ -17648,16 +20084,20 @@
             const bob = g.state === 'STUNNED' ? 0 : Math.sin(g.walkDist * 0.14) * 2.5;
 
             if (g.isPoacher) {
-              // Polar Poacher (heavy armor trim when isHeavy in N16)
+              // Polar Poacher (thermal suit in N15, heavy armor trim when isHeavy in N16/N19)
               const heavyScale = g.isHeavy ? 1.24 : 1.0;
               ctx.save();
               ctx.scale(heavyScale, heavyScale);
-              ctx.fillStyle = g.hitFlash > 0 ? '#FFFFFF' : (g.state === 'CHASE' ? '#991B1B' : (g.isHeavy ? '#52525B' : '#3F3F46'));
+              ctx.fillStyle = g.hitFlash > 0
+                ? '#FFFFFF'
+                : (g.state === 'CHASE'
+                  ? '#991B1B'
+                  : (g.isThermalHunter ? '#EA580C' : (g.isHeavy ? '#52525B' : '#3F3F46')));
               ctx.beginPath();
               ctx.ellipse(0, bob * 0.3, 13.5, 15.5, 0, 0, Math.PI * 2);
               ctx.fill();
-              ctx.strokeStyle = g.isHeavy ? '#F43F5E' : '#FDBA74';
-              ctx.lineWidth = g.isHeavy ? 2.6 : 2;
+              ctx.strokeStyle = g.isThermalHunter ? '#FACC15' : (g.isHeavy ? '#F43F5E' : '#FDBA74');
+              ctx.lineWidth = (g.isHeavy || g.isThermalHunter) ? 2.5 : 2;
               ctx.stroke();
 
               // Net rifle
@@ -17665,19 +20105,19 @@
                 ctx.fillStyle = '#0F172A';
                 roundRect(ctx, 5, 7, 14, 5, 2);
                 ctx.fill();
-                ctx.fillStyle = '#FB923C';
+                ctx.fillStyle = g.isThermalHunter ? '#FDE047' : '#FB923C';
                 ctx.fillRect(17, 7.5, 3, 4);
               }
-              // Fur hood + goggles
-              ctx.fillStyle = '#D6D3D1';
+              // Fur hood + thermal visor / goggles
+              ctx.fillStyle = g.isThermalHunter ? '#7C2D12' : '#D6D3D1';
               ctx.beginPath();
               ctx.arc(0, 0, 10.2, 0, Math.PI * 2);
               ctx.fill();
-              ctx.fillStyle = '#27272A';
+              ctx.fillStyle = g.isThermalHunter ? '#9A3412' : '#27272A';
               ctx.beginPath();
               ctx.arc(1.5, 0, 7.5, 0, Math.PI * 2);
               ctx.fill();
-              ctx.fillStyle = g.isHeavy ? '#F43F5E' : '#FB923C';
+              ctx.fillStyle = g.isThermalHunter ? '#FEF08A' : (g.isHeavy ? '#F43F5E' : '#FB923C');
               ctx.fillRect(5, -5, 4, 10);
               ctx.restore();
             } else {
@@ -18039,12 +20479,29 @@
         const masterGenDoor = state.doors.find((d) => !d.open && d.type === 'master_generator');
         const sonarDoor = state.doors.find((d) => !d.open && d.type === 'sonar');
         const thermalDoor = state.doors.find((d) => !d.open && d.type === 'thermal_shield');
+        const coolingDoor = state.doors.find((d) => !d.open && d.type === 'cooling_valves');
+        const hangarDoor = state.doors.find((d) => !d.open && d.type === 'hangar');
+        const cryoLabDoor = state.doors.find((d) => !d.open && d.type === 'cryo_lab_gate');
         const armoredDoor = state.doors.find((d) => !d.open && d.type === 'armored_fortress');
         const snowSubZone = state.subgameZones.find((sg) => sg.kind === 'snowmobile_tunnel' && !sg.completed);
         const magmaSubZone = state.subgameZones.find((sg) => sg.kind === 'magma_platforms' && !sg.completed);
+        const gliderSubZone = state.subgameZones.find((sg) => sg.kind === 'glider_radar' && !sg.completed);
 
         if (state.level && state.level.mode === 'naval') {
           target = state.exitCenter;
+        } else if (state.level && state.level.glacierScroll) {
+          const moto = state.vehicles.find((v) => !v.occupied && v.kind === 'snowmobile');
+          target = (p.vehicle !== 'snowmobile' && moto) ? { x: moto.px, y: moto.py } : state.exitCenter;
+        } else if (hangarDoor && gliderSubZone) {
+          target = { x: gliderSubZone.px, y: gliderSubZone.py };
+        } else if (cryoLabDoor) {
+          const unfrozen = state.cryoFans.find((f) => !f.frozen);
+          const unpulled = state.magneticLevers.find((l) => !l.activated);
+          if (unfrozen && (!unpulled || Math.hypot(p.x - unfrozen.px, p.y - unfrozen.py) <= Math.hypot(p.x - unpulled.px, p.y - unpulled.py))) {
+            target = { x: unfrozen.px, y: unfrozen.py };
+          } else if (unpulled) {
+            target = { x: unpulled.px, y: unpulled.py };
+          }
         } else if (beaconDoor) {
           const unlit = state.thermalBeacons.filter((tb) => !tb.lit);
           if (unlit.length > 0) {
@@ -18095,8 +20552,19 @@
             });
             target = { x: best.px, y: best.py };
           }
-        } else if (thermalDoor && magmaSubZone) {
+        } else if ((thermalDoor || (coolingDoor && !state.thermalShield)) && magmaSubZone) {
           target = { x: magmaSubZone.px, y: magmaSubZone.py };
+        } else if (coolingDoor) {
+          const pendingValves = state.coolingValves.filter((cv) => !cv.activated);
+          if (pendingValves.length > 0) {
+            let best = pendingValves[0];
+            let bestD = Math.hypot(p.x - best.px, p.y - best.py);
+            pendingValves.forEach((cv) => {
+              const d = Math.hypot(p.x - cv.px, p.y - cv.py);
+              if (d < bestD) { bestD = d; best = cv; }
+            });
+            target = { x: best.px, y: best.py };
+          }
         } else if (armoredDoor) {
           const gid = armoredDoor.gateId;
           const pendingCryo = state.cryoNodes.find((cn) => cn.gateId === gid && !cn.activated);

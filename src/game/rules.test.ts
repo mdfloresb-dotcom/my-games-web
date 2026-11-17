@@ -60,6 +60,13 @@ import {
   generateMagmaPlatformCourse,
   evaluateMagmaPlatformOutcome,
   isFortressGateUnlocked,
+  areAllCoolingValvesActive,
+  isFireGeyserActive,
+  generateGliderRadarCourse,
+  evaluateGliderRadarOutcome,
+  areAllCryoLabSystemsCleared,
+  getGlacierConvoyWindPush,
+  isTurretLaserFiring,
   type CircuitTile,
   type RushHourBlock,
 } from './rules';
@@ -290,7 +297,7 @@ test('navigation dial circular strike handles wraparound accurately', () => {
   assert.equal(evaluateNavDialStrike(0.5, 0.02, 0.08), 'miss');
 });
 
-test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
+test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
   const fs = await import('node:fs');
   const html = fs.readFileSync('index.html', 'utf8');
   const match = html.match(/const LEVELS = (\[[\s\S]*?\n      \]);/);
@@ -319,6 +326,14 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
     sonarConsoles?: Array<{ id: string; x: number; y: number; label: string }>;
     cryoNodes?: Array<{ id: string; gateId: number; x: number; y: number; label?: string }>;
     harpoonLocks?: Array<{ id: string; gateId: number; x: number; y: number; label?: string }>;
+    coolingValves?: Array<{ id: string; x: number; y: number; label?: string }>;
+    fireGeysers?: Array<{ id?: string; x: number; y: number; radius?: number; phaseOffset?: number; activeDur?: number; period?: number }>;
+    cryoFans?: Array<{ id: string; x: number; y: number; blockTiles?: Array<{ col: number; row: number }>; pushVx?: number; pushVy?: number; range?: number; label?: string }>;
+    magneticLevers?: Array<{ id: string; x: number; y: number; label?: string }>;
+    laserTurrets?: Array<{ id?: string; x1: number; y1: number; x2: number; y2: number; phaseOffset?: number; activeDur?: number; period?: number }>;
+    lasers?: Array<{ x1: number; y1: number; x2: number; y2: number; phaseOffset?: number; interval?: number }>;
+    glacierScroll?: boolean;
+    windPush?: boolean;
     envProps?: Array<{ kind: string; x: number; y: number }>;
     reactionBoost?: number;
     traffic?: Array<{ axis?: string }>;
@@ -338,6 +353,7 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
       isHeavy?: boolean;
       isPatrolVehicle?: boolean;
       isPoacher?: boolean;
+      isThermalHunter?: boolean;
       isPatrolSnowmobile?: boolean;
       isRobotDog?: boolean;
       proximityRadius?: number;
@@ -346,7 +362,7 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
     patrolBoats?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
   }>;
 
-  assert.equal(levels.length, 16, 'Should contain all 16 complete campaign levels (Acts I-V)');
+  assert.equal(levels.length, 19, 'Should contain all 19 complete campaign levels (Acts I-V)');
 
   const isStaticObstacleChar = (ch: string | undefined) =>
     ch === undefined || ch === '#' || ch === 'W' || ch === 'T' || ch === 'B' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'C' || ch === 'L';
@@ -516,10 +532,16 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
       }
       if (lvl.id === 14) {
         assert.equal(lvl.theme, 'arctic_volcano', 'N15 must use arctic_volcano theme');
+        assert.ok(cols >= 106, `N15 doubled second half must expand grid width >= 106, got ${cols}`);
         assert.ok(lvl.grid.some((r) => r.includes('L')), 'N15 must include glowing magma river tiles L');
         assert.ok(lvl.grid.some((r) => r.includes('V')), 'N15 must include thermal-shield bridge tiles V');
         assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'magma_platforms'), 'N15 must include magma_platforms subgameZone');
         assert.ok(lvl.doors.some((d) => d.type === 'thermal_shield'), 'N15 must include thermal_shield gate');
+        assert.equal((lvl.coolingValves || []).length, 2, 'N15 must have 2 Cooling Valves');
+        assert.ok((lvl.fireGeysers || []).length >= 4, 'N15 must have >= 4 timed fire geysers');
+        assert.ok(lvl.guards.filter((g) => g.isThermalHunter).length >= 2, 'N15 must include >= 2 thermal-suit poachers');
+        assert.ok((lvl.drones || []).length >= 3, 'N15 must include surveillance drones patrolling magma bridges');
+        assert.ok(lvl.doors.some((d) => d.type === 'cooling_valves'), 'N15 must lock final exit behind cooling_valves gate');
       }
       if (lvl.id === 15) {
         assert.equal(lvl.theme, 'arctic_fortress', 'N16 must use arctic_fortress theme');
@@ -533,6 +555,41 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
         assert.equal(lvl.doors.filter((d) => d.type === 'armored_fortress').length, 3, 'N16 must have 3 armored fortress gates');
         assert.ok((lvl.cryoNodes || []).length >= 3, 'N16 must have >= 3 Cryo Valve Nodes');
         assert.ok((lvl.harpoonLocks || []).length >= 3, 'N16 must have >= 3 Magnetic Harpoon Locks');
+      }
+      if (lvl.id === 16) {
+        assert.equal(lvl.theme, 'arctic_airbase', 'N17 must use arctic_airbase theme');
+        assert.ok(cols >= 74 && rows >= 38, `N17 huge airfield must be >= 74x38 tiles, got ${cols}x${rows}`);
+        assert.equal(lvl.snowstorm, true, 'N17 must include snowstorm effect');
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        assert.ok(propKinds.has('runway_light_blue'), 'N17 must include blue runway guide lights');
+        assert.ok(propKinds.has('runway_light_amber'), 'N17 must include amber runway guide lights');
+        assert.ok(propKinds.has('cargo_plane'), 'N17 must include parked cargo planes');
+        assert.ok(lvl.guards.some((g) => g.isRobotDog), 'N17 must include fast robot dogs');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'glider_radar'), 'N17 must include glider_radar subgameZone');
+        assert.ok(lvl.doors.some((d) => d.type === 'hangar'), 'N17 must lock exit behind hangar gate');
+      }
+      if (lvl.id === 17) {
+        assert.equal(lvl.theme, 'cryo_lab', 'N18 must use cryo_lab theme');
+        assert.ok(cols >= 70 && rows >= 36, `N18 cryo lab must be >= 70x36 tiles, got ${cols}x${rows}`);
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        assert.ok(propKinds.has('cryo_capsule'), 'N18 must include glowing cyan cryo_capsule props');
+        assert.ok((lvl.lasers || []).length >= 3, 'N18 must include cyclical security lasers');
+        assert.ok(lvl.guards.some((g) => g.isElite), 'N18 must include elite guards');
+        assert.ok((lvl.cryoFans || []).length >= 2, 'N18 must include >= 2 corridor Cryo Fans');
+        assert.ok((lvl.magneticLevers || []).length >= 2, 'N18 must include >= 2 remote Magnetic Levers');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), 'N18 must include cryo_snow pickup');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'harpoon'), 'N18 must include harpoon pickup');
+        assert.ok(lvl.doors.some((d) => d.type === 'cryo_lab_gate'), 'N18 must lock exit behind cryo_lab_gate');
+      }
+      if (lvl.id === 18) {
+        assert.equal(lvl.theme, 'armored_convoy', 'N19 must use armored_convoy theme');
+        assert.ok(cols >= 80 && rows >= 36, `N19 armored convoy must be >= 80x36 tiles, got ${cols}x${rows}`);
+        assert.equal(lvl.glacierScroll, true, 'N19 must enable glacierScroll');
+        assert.equal(lvl.windPush, true, 'N19 must enable crosswind windPush');
+        assert.ok((lvl.laserTurrets || []).length >= 3, 'N19 must include >= 3 cyclical laserTurrets');
+        assert.ok(lvl.guards.some((g) => g.isPoacher && g.isHeavy), 'N19 must include heavy poachers');
+        assert.ok((lvl.drones || []).length >= 2, 'N19 must include surveillance drones');
+        assert.ok(lvl.vehicles.some((v) => v.kind === 'snowmobile' && v.x >= 56), 'N19 must place Turbo Snowmobile in final stretch (x >= 56)');
       }
     }
 
@@ -628,11 +685,18 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
         `${lvl.code}: Sonar console ${sn.label} at (${sn.x},${sn.y}) must be directly guarded by hazard`
       );
     }
+    for (const cv of lvl.coolingValves || []) {
+      assert.ok(
+        isPointProtectedByHazard(cv.x * TILE_SIZE, cv.y * TILE_SIZE, lvl.guards, lvl.cameras, lvl.drones || [], TILE_SIZE, isOpaqueAll),
+        `${lvl.code}: Cooling valve ${cv.label || cv.id} at (${cv.x},${cv.y}) must be directly guarded by hazard`
+      );
+    }
 
     // Simulate progressive door unlocks in dependency order
     const doorAt = new Map(lvl.doors.map((d) => [`${d.col},${d.row}`, d]));
     const opened = new Set<string>();
     const hasKey = new Set<string>();
+    const collectedWeapons = new Set<string>();
     const pressedButtons = new Set<number>();
     const activeSwitches = new Set<number>();
     const litBeacons = new Set<number>();
@@ -641,6 +705,9 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
     const disabledSonars = new Set<number>();
     const activeCryoNodes = new Set<string>();
     const activeHarpoonLocks = new Set<string>();
+    const activeCoolingValves = new Set<string>();
+    const frozenFans = new Set<string>();
+    const pulledLevers = new Set<string>();
     const completedSubgames = new Set<string>();
 
     const canWalkNow = (c: number, r: number) => {
@@ -648,6 +715,11 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
       if (isStaticObstacleChar(ch)) return false;
       if (ch === 'V' && !completedSubgames.has('magma_platforms')) return false;
       if (ch === 'D' || ch === 'K') return opened.has(`${c},${r}`);
+      for (const fan of lvl.cryoFans || []) {
+        if (!frozenFans.has(fan.id) && (fan.blockTiles || []).some((bt) => bt.col === c && bt.row === r)) {
+          return false;
+        }
+      }
       return true;
     };
 
@@ -666,11 +738,17 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
         }
       }
 
-      // Pick up reachable keycards
+      // Pick up reachable keycards and gadgets
       for (const pk of lvl.pickups) {
         if (pk.kind === 'keycard' && pk.keyColor && !hasKey.has(pk.keyColor)) {
           if (isReachable(Math.floor(pk.x), Math.floor(pk.y))) {
             hasKey.add(pk.keyColor);
+            changed = true;
+          }
+        }
+        if (pk.kind === 'gadget' && pk.weapon && !collectedWeapons.has(pk.weapon)) {
+          if (isReachable(Math.floor(pk.x), Math.floor(pk.y))) {
+            collectedWeapons.add(pk.weapon);
             changed = true;
           }
         }
@@ -716,6 +794,14 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
         }
       });
 
+      // Act V: activate reachable cooling valves (N15)
+      for (const cv of lvl.coolingValves || []) {
+        if (!activeCoolingValves.has(cv.id) && isReachable(Math.floor(cv.x), Math.floor(cv.y))) {
+          activeCoolingValves.add(cv.id);
+          changed = true;
+        }
+      }
+
       // Act V: activate reachable Cryo Nodes & Magnetic Locks (N16)
       for (const cn of lvl.cryoNodes || []) {
         if (!activeCryoNodes.has(cn.id) && isReachable(Math.floor(cn.x), Math.floor(cn.y))) {
@@ -727,6 +813,47 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
         if (!activeHarpoonLocks.has(hl.id) && isReachable(Math.floor(hl.x), Math.floor(hl.y))) {
           activeHarpoonLocks.add(hl.id);
           changed = true;
+        }
+      }
+
+      // Act V: N18 Cryo Fans (frozen by cryo_snow) & Magnetic Levers (pulled across crevasses with harpoon)
+      if (collectedWeapons.has('cryo_snow')) {
+        for (const fan of lvl.cryoFans || []) {
+          if (frozenFans.has(fan.id)) continue;
+          const fc = Math.floor(fan.x);
+          const fr = Math.floor(fan.y);
+          let approachClear = false;
+          for (let dr = -4; dr <= 4 && !approachClear; dr++) {
+            for (let dc = -5; dc <= 5 && !approachClear; dc++) {
+              const ac = fc + dc;
+              const ar = fr + dr;
+              if (canWalkNow(ac, ar) && isReachable(ac, ar)) approachClear = true;
+            }
+          }
+          if (approachClear) {
+            frozenFans.add(fan.id);
+            changed = true;
+          }
+        }
+      }
+      if (collectedWeapons.has('harpoon')) {
+        for (const lv of lvl.magneticLevers || []) {
+          if (pulledLevers.has(lv.id)) continue;
+          const lc = Math.floor(lv.x);
+          const lr = Math.floor(lv.y);
+          let inHarpoonRange = false;
+          for (let dr = -6; dr <= 6 && !inHarpoonRange; dr++) {
+            for (let dc = -7; dc <= 7 && !inHarpoonRange; dc++) {
+              if (Math.hypot(dc, dr) > 7.2) continue;
+              const ac = lc + dc;
+              const ar = lr + dr;
+              if (canWalkNow(ac, ar) && isReachable(ac, ar)) inHarpoonRange = true;
+            }
+          }
+          if (inHarpoonRange) {
+            pulledLevers.add(lv.id);
+            changed = true;
+          }
         }
       }
 
@@ -763,6 +890,14 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
       if (completedSubgames.has('magma_platforms')) {
         for (const d of lvl.doors) {
           if (d.type === 'thermal_shield' && !opened.has(`${d.col},${d.row}`)) {
+            opened.add(`${d.col},${d.row}`);
+            changed = true;
+          }
+        }
+      }
+      if (completedSubgames.has('glider_radar')) {
+        for (const d of lvl.doors) {
+          if (d.type === 'hangar' && !opened.has(`${d.col},${d.row}`)) {
             opened.add(`${d.col},${d.row}`);
             changed = true;
           }
@@ -810,6 +945,22 @@ test('all 13 expanded campaign levels in index.html meet scale, door-variety, AI
           opened.add(key);
           changed = true;
         } else if (d.type === 'sonar' && (lvl.sonarConsoles || []).length > 0 && disabledSonars.size === (lvl.sonarConsoles || []).length) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'cooling_valves' &&
+          (lvl.coolingValves || []).length > 0 &&
+          areAllCoolingValvesActive((lvl.coolingValves || []).map((cv) => ({ activated: activeCoolingValves.has(cv.id) })))
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'cryo_lab_gate' &&
+          areAllCryoLabSystemsCleared(
+            (lvl.cryoFans || []).map((f) => ({ frozen: frozenFans.has(f.id) })),
+            (lvl.magneticLevers || []).map((l) => ({ activated: pulledLevers.has(l.id) }))
+          )
+        ) {
           opened.add(key);
           changed = true;
         } else if (
@@ -1010,28 +1161,28 @@ test('Level 9 Captain Boss Battle reflects enemy electric-net shots back at Capt
   assert.equal(evaluateBossBattleOutcome(2, 0), 'lost');
 });
 
-test('persistent save uses escape_antartida_save_v1, keeps N14 unlocked by default, migrates legacy saves, and stores weapons & records', () => {
+test('persistent save uses escape_antartida_save_v1, keeps N17 unlocked by default, migrates legacy saves, and stores weapons & records', () => {
   assert.equal(SAVE_STORAGE_KEY, 'escape_antartida_save_v1');
   assert.equal(LEGACY_PROGRESS_STORAGE_KEY, 'operacion_antartida_progress_v1');
-  assert.equal(TOTAL_CAMPAIGN_LEVELS, 16);
-  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 13);
+  assert.equal(TOTAL_CAMPAIGN_LEVELS, 19);
+  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 16);
 
   const def = createDefaultCampaignSave();
-  assert.equal(def.maxUnlockedIdx, 13);
-  assert.equal(def.completed.length, 16);
+  assert.equal(def.maxUnlockedIdx, 16);
+  assert.equal(def.completed.length, 19);
 
   const legacyOnly = parseCampaignSave(null, JSON.stringify({ completed: [true, true, true], maxUnlockedIdx: 3, selectedIdx: 2 }));
   assert.equal(legacyOnly.completed[0], true);
   assert.equal(legacyOnly.completed[2], true);
-  assert.equal(legacyOnly.maxUnlockedIdx, 13);
+  assert.equal(legacyOnly.maxUnlockedIdx, 16);
   assert.equal(legacyOnly.selectedIdx, 2);
 
-  const updated = recordLevelCompletionSave(def, 13, 42.37, 1, 5, [{ type: 'cryo_snow', ammo: 4 }]);
-  assert.equal(updated.completed[13], true);
-  assert.equal(updated.maxUnlockedIdx, 14);
-  assert.equal(updated.records['14']?.bestTimeSec, 42.4);
-  assert.equal(updated.records['14']?.minAlerts, 1);
-  assert.equal(updated.records['14']?.maxStunned, 5);
+  const updated = recordLevelCompletionSave(def, 16, 42.37, 1, 5, [{ type: 'cryo_snow', ammo: 4 }]);
+  assert.equal(updated.completed[16], true);
+  assert.equal(updated.maxUnlockedIdx, 17);
+  assert.equal(updated.records['17']?.bestTimeSec, 42.4);
+  assert.equal(updated.records['17']?.minAlerts, 1);
+  assert.equal(updated.records['17']?.maxStunned, 5);
   assert.ok(updated.weapons.unlocked.includes('cryo_snow'));
   assert.deepEqual(updated.weapons.loadout, [{ type: 'cryo_snow', ammo: 4 }]);
 });
@@ -1123,4 +1274,45 @@ test('N14 Sonar, N15 Volcano Magma & Thermal Shield, and N16 Dual-Gadget Armored
   assert.equal(isFortressGateUnlocked(cryoNodes, harpoonLocks, 1), false);
   assert.equal(isFortressGateUnlocked(cryoNodes, harpoonLocks, 2), true);
 });
+
+test('N15 Cooling Valves & Fire Geysers, N17 Glider Radar Course, N18 Cryo Lab Systems, and N19 Convoy Wind & Laser Turrets', () => {
+  assert.equal(areAllCoolingValvesActive([]), false);
+  assert.equal(areAllCoolingValvesActive([{ activated: true }, { activated: false }]), false);
+  assert.equal(areAllCoolingValvesActive([{ activated: true }, { activated: true }]), true);
+
+  const geyserActive = isFireGeyserActive(0.4, 0, 1.25, 3.2);
+  const geyserWarn = isFireGeyserActive(2.8, 0, 1.25, 3.2);
+  const geyserCalm = isFireGeyserActive(1.8, 0, 1.25, 3.2);
+  assert.equal(geyserActive.active, true);
+  assert.equal(geyserWarn.warning, true);
+  assert.equal(geyserCalm.active, false);
+  assert.equal(geyserCalm.warning, false);
+
+  const glider = generateGliderRadarCourse(160, 4600, 64, 376);
+  assert.equal(glider.towers.length, 3);
+  assert.ok(glider.hazards.some((h) => h.kind === 'wind_gust'));
+  assert.ok(glider.hazards.some((h) => h.kind === 'flare'));
+  assert.ok(glider.boostRings.length >= 4);
+  for (const h of glider.hazards) {
+    assert.ok(h.baseY - h.moveAmp >= 64 && h.baseY + h.moveAmp <= 376, `Glider hazard ${h.id} stays inside sky bounds`);
+  }
+  assert.equal(evaluateGliderRadarOutcome(12.0, 2, 3, 2), 'playing');
+  assert.equal(evaluateGliderRadarOutcome(8.0, 3, 3, 2), 'won');
+  assert.equal(evaluateGliderRadarOutcome(10.0, 1, 3, 0), 'lost_hits');
+  assert.equal(evaluateGliderRadarOutcome(0, 2, 3, 2), 'lost_timeout');
+
+  assert.equal(areAllCryoLabSystemsCleared([{ frozen: true }], [{ activated: false }]), false);
+  assert.equal(areAllCryoLabSystemsCleared([{ frozen: true }, { frozen: true }], [{ activated: true }, { activated: true }]), true);
+
+  const wind0 = getGlacierConvoyWindPush(0.5);
+  assert.ok(wind0.vx < 0);
+  assert.ok(Number.isFinite(wind0.vy));
+
+  const turretOn = isTurretLaserFiring(0.3, 0, 1.4, 3.4);
+  const turretWarn = isTurretLaserFiring(3.0, 0, 1.4, 3.4);
+  assert.equal(turretOn.active, true);
+  assert.equal(turretWarn.active, false);
+  assert.equal(turretWarn.warning, true);
+});
+
 
