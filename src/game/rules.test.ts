@@ -67,6 +67,11 @@ import {
   areAllCryoLabSystemsCleared,
   getGlacierConvoyWindPush,
   isTurretLaserFiring,
+  getExpertEnemySpeedMultiplier,
+  isConvoyGateUnlocked,
+  canCrossBurningSteam,
+  getIcebreakerBossPhase,
+  evaluateIcebreakerBossOutcome,
   type CircuitTile,
   type RushHourBlock,
 } from './rules';
@@ -297,7 +302,7 @@ test('navigation dial circular strike handles wraparound accurately', () => {
   assert.equal(evaluateNavDialStrike(0.5, 0.02, 0.08), 'miss');
 });
 
-test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
+test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
   const fs = await import('node:fs');
   const html = fs.readFileSync('index.html', 'utf8');
   const match = html.match(/const LEVELS = (\[[\s\S]*?\n      \]);/);
@@ -309,10 +314,13 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
     mode?: string;
     theme?: string;
     snowstorm?: boolean;
+    stormIntensityBoost?: number;
+    windMultiplier?: number;
+    guardFovBoost?: number;
     grid: string[];
     spawn: { x: number; y: number };
     doors: Array<{ col: number; row: number; type: string; keyColor?: string; gateId?: number; label?: string }>;
-    pickups: Array<{ kind: string; weapon?: string; keyColor?: string; x: number; y: number; label?: string }>;
+    pickups: Array<{ id?: string; kind: string; weapon?: string; keyColor?: string; x: number; y: number; label?: string }>;
     switches?: Array<{ x: number; y: number; label: string }>;
     pressureButtons?: Array<{ x: number; y: number; duration: number; label: string }>;
     subgameZones?: Array<{ id: string; kind: string; x: number; y: number; radius?: number; label: string }>;
@@ -328,8 +336,10 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
     harpoonLocks?: Array<{ id: string; gateId: number; x: number; y: number; label?: string }>;
     coolingValves?: Array<{ id: string; x: number; y: number; label?: string }>;
     fireGeysers?: Array<{ id?: string; x: number; y: number; radius?: number; phaseOffset?: number; activeDur?: number; period?: number }>;
-    cryoFans?: Array<{ id: string; x: number; y: number; blockTiles?: Array<{ col: number; row: number }>; pushVx?: number; pushVy?: number; range?: number; label?: string }>;
+    cryoFans?: Array<{ id: string; giantTurbine?: boolean; x: number; y: number; blockTiles?: Array<{ col: number; row: number }>; pushVx?: number; pushVy?: number; range?: number; label?: string }>;
     magneticLevers?: Array<{ id: string; x: number; y: number; label?: string }>;
+    drawbridges?: Array<{ id: string; x: number; y: number; winchX: number; winchY: number; tiles: Array<{ col: number; row: number }>; label?: string }>;
+    burningCorridors?: Array<{ id: string; minCol: number; maxCol: number; minRow: number; maxRow: number; label?: string }>;
     laserTurrets?: Array<{ id?: string; x1: number; y1: number; x2: number; y2: number; phaseOffset?: number; activeDur?: number; period?: number }>;
     lasers?: Array<{ x1: number; y1: number; x2: number; y2: number; phaseOffset?: number; interval?: number }>;
     glacierScroll?: boolean;
@@ -362,7 +372,7 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
     patrolBoats?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
   }>;
 
-  assert.equal(levels.length, 19, 'Should contain all 19 complete campaign levels (Acts I-V)');
+  assert.equal(levels.length, 20, 'Should contain all 20 complete campaign levels (Acts I-V)');
 
   const isStaticObstacleChar = (ch: string | undefined) =>
     ch === undefined || ch === '#' || ch === 'W' || ch === 'T' || ch === 'B' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'C' || ch === 'L';
@@ -560,11 +570,13 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
         assert.equal(lvl.theme, 'arctic_airbase', 'N17 must use arctic_airbase theme');
         assert.ok(cols >= 74 && rows >= 38, `N17 huge airfield must be >= 74x38 tiles, got ${cols}x${rows}`);
         assert.equal(lvl.snowstorm, true, 'N17 must include snowstorm effect');
+        assert.ok((lvl.stormIntensityBoost || 0) >= 0.4, 'N17 must intensify snowstorm gusts');
+        assert.ok((lvl.guardFovBoost || 0) > 0, 'N17 must widen guard/camera detection cones');
         const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
         assert.ok(propKinds.has('runway_light_blue'), 'N17 must include blue runway guide lights');
         assert.ok(propKinds.has('runway_light_amber'), 'N17 must include amber runway guide lights');
         assert.ok(propKinds.has('cargo_plane'), 'N17 must include parked cargo planes');
-        assert.ok(lvl.guards.some((g) => g.isRobotDog), 'N17 must include fast robot dogs');
+        assert.ok(lvl.guards.filter((g) => g.isRobotDog).length >= 5, 'N17 must include >= 5 fast robot dogs (with 2 extra perimeter dogs)');
         assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'glider_radar'), 'N17 must include glider_radar subgameZone');
         assert.ok(lvl.doors.some((d) => d.type === 'hangar'), 'N17 must lock exit behind hangar gate');
       }
@@ -583,13 +595,25 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
       }
       if (lvl.id === 18) {
         assert.equal(lvl.theme, 'armored_convoy', 'N19 must use armored_convoy theme');
-        assert.ok(cols >= 80 && rows >= 36, `N19 armored convoy must be >= 80x36 tiles, got ${cols}x${rows}`);
+        assert.ok(cols >= 120 && rows >= 36, `N19 extended 5-car armored convoy must be >= 120x36 tiles, got ${cols}x${rows}`);
         assert.equal(lvl.glacierScroll, true, 'N19 must enable glacierScroll');
         assert.equal(lvl.windPush, true, 'N19 must enable crosswind windPush');
-        assert.ok((lvl.laserTurrets || []).length >= 3, 'N19 must include >= 3 cyclical laserTurrets');
+        assert.ok((lvl.laserTurrets || []).length >= 7, 'N19 extended convoy must include >= 7 cyclical laserTurrets');
         assert.ok(lvl.guards.some((g) => g.isPoacher && g.isHeavy), 'N19 must include heavy poachers');
-        assert.ok((lvl.drones || []).length >= 2, 'N19 must include surveillance drones');
-        assert.ok(lvl.vehicles.some((v) => v.kind === 'snowmobile' && v.x >= 56), 'N19 must place Turbo Snowmobile in final stretch (x >= 56)');
+        assert.ok((lvl.drones || []).length >= 4, 'N19 extended convoy must include >= 4 surveillance drones');
+        assert.ok(lvl.vehicles.some((v) => v.kind === 'snowmobile' && v.x >= 56), 'N19 must place Turbo Snowmobile after middle car (x >= 56)');
+        assert.equal(lvl.pickups.filter((pk) => pk.kind === 'convoy_keycard').length, 2, 'N19 must include 2 convoy_keycard pickups in extra front cars');
+        assert.ok(lvl.doors.some((d) => d.type === 'convoy_gate'), 'N19 must lock final car exit behind convoy_gate');
+      }
+      if (lvl.id === 19) {
+        assert.equal(lvl.theme, 'glacier_core', 'N20 must use glacier_core theme');
+        assert.ok(cols >= 82 && rows >= 38, `N20 glacier_core must be >= 82x38 tiles, got ${cols}x${rows}`);
+        assert.ok((lvl.cryoFans || []).some((f) => f.giantTurbine), 'N20 must include Giant Cryo Turbine');
+        assert.ok((lvl.drawbridges || []).length >= 1, 'N20 must include harpoon drawbridge over crevasse');
+        assert.ok((lvl.burningCorridors || []).length >= 1, 'N20 must include burning steam corridor');
+        assert.ok(lvl.pickups.some((pk) => pk.kind === 'thermal_shield_pickup'), 'N20 must include thermal_shield_pickup');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'icebreaker_boss'), 'N20 must include icebreaker_boss arena zone');
+        assert.ok(lvl.doors.some((d) => d.type === 'boss_core'), 'N20 must lock exit behind boss_core gate');
       }
     }
 
@@ -708,10 +732,14 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
     const activeCoolingValves = new Set<string>();
     const frozenFans = new Set<string>();
     const pulledLevers = new Set<string>();
+    const loweredDrawbridges = new Set<string>();
+    const convoyCardIds = new Set<string>();
     const completedSubgames = new Set<string>();
 
+    const bridgeTileSet = new Set<string>();
     const canWalkNow = (c: number, r: number) => {
       const ch = lvl.grid[r]?.[c];
+      if (ch === 'C' && bridgeTileSet.has(`${c},${r}`)) return true;
       if (isStaticObstacleChar(ch)) return false;
       if (ch === 'V' && !completedSubgames.has('magma_platforms')) return false;
       if (ch === 'D' || ch === 'K') return opened.has(`${c},${r}`);
@@ -738,11 +766,17 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
         }
       }
 
-      // Pick up reachable keycards and gadgets
+      // Pick up reachable keycards, convoy keycards, and gadgets
       for (const pk of lvl.pickups) {
         if (pk.kind === 'keycard' && pk.keyColor && !hasKey.has(pk.keyColor)) {
           if (isReachable(Math.floor(pk.x), Math.floor(pk.y))) {
             hasKey.add(pk.keyColor);
+            changed = true;
+          }
+        }
+        if (pk.kind === 'convoy_keycard' && pk.id && !convoyCardIds.has(pk.id)) {
+          if (isReachable(Math.floor(pk.x), Math.floor(pk.y))) {
+            convoyCardIds.add(pk.id);
             changed = true;
           }
         }
@@ -855,6 +889,24 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
             changed = true;
           }
         }
+        for (const db of lvl.drawbridges || []) {
+          if (loweredDrawbridges.has(db.id)) continue;
+          const wc = Math.floor(db.winchX);
+          const wr = Math.floor(db.winchY);
+          let inRange = false;
+          for (let dr = -5; dr <= 5 && !inRange; dr++) {
+            for (let dc = -5; dc <= 5 && !inRange; dc++) {
+              const ac = wc + dc;
+              const ar = wr + dr;
+              if (canWalkNow(ac, ar) && isReachable(ac, ar)) inRange = true;
+            }
+          }
+          if (inRange) {
+            loweredDrawbridges.add(db.id);
+            for (const bt of db.tiles || []) bridgeTileSet.add(`${bt.col},${bt.row}`);
+            changed = true;
+          }
+        }
       }
 
       // Press reachable timed buttons -> open timed doors
@@ -898,6 +950,14 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
       if (completedSubgames.has('glider_radar')) {
         for (const d of lvl.doors) {
           if (d.type === 'hangar' && !opened.has(`${d.col},${d.row}`)) {
+            opened.add(`${d.col},${d.row}`);
+            changed = true;
+          }
+        }
+      }
+      if (completedSubgames.has('icebreaker_boss')) {
+        for (const d of lvl.doors) {
+          if (d.type === 'boss_core' && !opened.has(`${d.col},${d.row}`)) {
             opened.add(`${d.col},${d.row}`);
             changed = true;
           }
@@ -960,6 +1020,12 @@ test('all 19 expanded campaign levels in index.html meet scale, door-variety, AI
             (lvl.cryoFans || []).map((f) => ({ frozen: frozenFans.has(f.id) })),
             (lvl.magneticLevers || []).map((l) => ({ activated: pulledLevers.has(l.id) }))
           )
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'convoy_gate' &&
+          isConvoyGateUnlocked(Array.from(convoyCardIds), 2)
         ) {
           opened.add(key);
           changed = true;
@@ -1161,30 +1227,33 @@ test('Level 9 Captain Boss Battle reflects enemy electric-net shots back at Capt
   assert.equal(evaluateBossBattleOutcome(2, 0), 'lost');
 });
 
-test('persistent save uses escape_antartida_save_v1, keeps N17 unlocked by default, migrates legacy saves, and stores weapons & records', () => {
+test('persistent save uses escape_antartida_save_v1, keeps all 20 levels unlocked, migrates legacy saves, and unlocks Expert Mode on N20 completion', () => {
   assert.equal(SAVE_STORAGE_KEY, 'escape_antartida_save_v1');
   assert.equal(LEGACY_PROGRESS_STORAGE_KEY, 'operacion_antartida_progress_v1');
-  assert.equal(TOTAL_CAMPAIGN_LEVELS, 19);
-  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 16);
+  assert.equal(TOTAL_CAMPAIGN_LEVELS, 20);
+  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 19);
 
   const def = createDefaultCampaignSave();
-  assert.equal(def.maxUnlockedIdx, 16);
-  assert.equal(def.completed.length, 19);
+  assert.equal(def.maxUnlockedIdx, 19);
+  assert.equal(def.completed.length, 20);
+  assert.equal(def.expertModeUnlocked, false);
+  assert.equal(def.expertModeEnabled, false);
 
   const legacyOnly = parseCampaignSave(null, JSON.stringify({ completed: [true, true, true], maxUnlockedIdx: 3, selectedIdx: 2 }));
   assert.equal(legacyOnly.completed[0], true);
   assert.equal(legacyOnly.completed[2], true);
-  assert.equal(legacyOnly.maxUnlockedIdx, 16);
+  assert.equal(legacyOnly.maxUnlockedIdx, 19);
   assert.equal(legacyOnly.selectedIdx, 2);
 
-  const updated = recordLevelCompletionSave(def, 16, 42.37, 1, 5, [{ type: 'cryo_snow', ammo: 4 }]);
-  assert.equal(updated.completed[16], true);
-  assert.equal(updated.maxUnlockedIdx, 17);
-  assert.equal(updated.records['17']?.bestTimeSec, 42.4);
-  assert.equal(updated.records['17']?.minAlerts, 1);
-  assert.equal(updated.records['17']?.maxStunned, 5);
+  const updated = recordLevelCompletionSave(def, 19, 68.42, 0, 7, [{ type: 'cryo_snow', ammo: 8 }]);
+  assert.equal(updated.completed[19], true);
+  assert.equal(updated.maxUnlockedIdx, 19);
+  assert.equal(updated.expertModeUnlocked, true);
+  assert.equal(updated.records['20']?.bestTimeSec, 68.4);
+  assert.equal(updated.records['20']?.minAlerts, 0);
+  assert.equal(updated.records['20']?.maxStunned, 7);
   assert.ok(updated.weapons.unlocked.includes('cryo_snow'));
-  assert.deepEqual(updated.weapons.loadout, [{ type: 'cryo_snow', ammo: 4 }]);
+  assert.deepEqual(updated.weapons.loadout, [{ type: 'cryo_snow', ammo: 8 }]);
 });
 
 test('N3 fishOnly armored drones reject darts and allow fish / cryo_snow stuns', () => {
@@ -1314,5 +1383,29 @@ test('N15 Cooling Valves & Fire Geysers, N17 Glider Radar Course, N18 Cryo Lab S
   assert.equal(turretWarn.active, false);
   assert.equal(turretWarn.warning, true);
 });
+
+test('N19 convoy keycards, N20 burning steam & Mecha Spider Boss phases, and Expert Mode +28% speed scale accurately', () => {
+  assert.equal(getExpertEnemySpeedMultiplier(false), 1.0);
+  assert.equal(getExpertEnemySpeedMultiplier(true), 1.28);
+
+  assert.equal(isConvoyGateUnlocked(['l19-card-1'], 2), false);
+  assert.equal(isConvoyGateUnlocked(['l19-card-1', 'l19-card-1'], 2), false);
+  assert.equal(isConvoyGateUnlocked(['l19-card-1', 'l19-card-2'], 2), true);
+
+  assert.equal(canCrossBurningSteam(false), false);
+  assert.equal(canCrossBurningSteam(true), true);
+
+  assert.equal(getIcebreakerBossPhase(100, 100), 'A');
+  assert.equal(getIcebreakerBossPhase(66, 100), 'A');
+  assert.equal(getIcebreakerBossPhase(65, 100), 'B');
+  assert.equal(getIcebreakerBossPhase(31, 100), 'B');
+  assert.equal(getIcebreakerBossPhase(30, 100), 'C');
+  assert.equal(getIcebreakerBossPhase(5, 100), 'C');
+
+  assert.equal(evaluateIcebreakerBossOutcome(45, 3), 'playing');
+  assert.equal(evaluateIcebreakerBossOutcome(0, 2), 'won');
+  assert.equal(evaluateIcebreakerBossOutcome(25, 0), 'lost');
+});
+
 
 
