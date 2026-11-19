@@ -226,13 +226,16 @@ export function findNextGridStep(
   return { col: step % cols, row: Math.floor(step / cols) };
 }
 
-export type VehicleType = 'none' | 'skateboard' | 'cart' | 'moto' | 'boat';
+export type VehicleType = 'none' | 'skateboard' | 'cart' | 'moto' | 'boat' | 'snowmobile' | 'jeep' | 'submarine';
 
 export function getSpeedMultiplier(vehicle: VehicleType, turboActive = false): number {
   if (vehicle === 'skateboard') return 1.75;
-  if (vehicle === 'cart') return 2.1;
+  if (vehicle === 'cart') return turboActive ? 2.85 : 2.25;
   if (vehicle === 'moto') return turboActive ? 3.35 : 2.4;
+  if (vehicle === 'snowmobile') return turboActive ? 3.48 : 2.52;
   if (vehicle === 'boat') return turboActive ? 3.1 : 2.25;
+  if (vehicle === 'jeep') return turboActive ? 3.25 : 2.55;
+  if (vehicle === 'submarine') return turboActive ? 3.1 : 2.3;
   return 1.0;
 }
 
@@ -337,12 +340,26 @@ export function isTimedButtonActive(
   };
 }
 
-export type ActMusicTheme = 'zoo' | 'city' | 'ship' | 'ocean';
+export type ActMusicTheme = 'zoo' | 'city' | 'ship' | 'ocean' | 'volcanic_island';
 
-export function getMusicThemeForLevel(levelIdx: number): ActMusicTheme {
+export function getMusicThemeForLevel(levelIdx: number | string): ActMusicTheme {
+  if (typeof levelIdx === 'string') {
+    if (
+      levelIdx === 'volcanic_island' ||
+      levelIdx === 'tropical_beach' ||
+      levelIdx === 'biolum_jungle' ||
+      levelIdx === 'volcano_ruins' ||
+      levelIdx === 'jungle_jeep' ||
+      levelIdx === 'volcano_caves_sub'
+    ) {
+      return 'volcanic_island';
+    }
+    return 'ocean';
+  }
   if (levelIdx <= 2) return 'zoo';
   if (levelIdx <= 5) return 'city';
   if (levelIdx <= 8) return 'ship';
+  if (levelIdx >= 20) return 'volcanic_island';
   return 'ocean';
 }
 
@@ -356,12 +373,14 @@ export function getDynamicMusicBpm(levelIdx: number, chaseIntensity: number): nu
     city: 116,
     ship: 110,
     ocean: 124,
+    volcanic_island: 118,
   };
   const chaseBoostByTheme: Record<ActMusicTheme, number> = {
     zoo: 34,
     city: 32,
     ship: 36,
     ocean: 30,
+    volcanic_island: 34,
   };
   return Math.round(baseByTheme[theme] + clamp(chaseIntensity, 0, 1) * chaseBoostByTheme[theme]);
 }
@@ -1499,8 +1518,8 @@ export function evaluateBossBattleOutcome(
 // =========================================================
 export const SAVE_STORAGE_KEY = 'escape_antartida_save_v1';
 export const LEGACY_PROGRESS_STORAGE_KEY = 'operacion_antartida_progress_v1';
-export const TOTAL_CAMPAIGN_LEVELS = 20;
-export const DEFAULT_MIN_UNLOCKED_IDX = 19; // N1-N20 unlocked by default for testing
+export const TOTAL_CAMPAIGN_LEVELS = 25;
+export const DEFAULT_MIN_UNLOCKED_IDX = 24; // N1-N25 unlocked by default for immediate Campaign 2 testing
 
 export interface LevelRecord {
   bestTimeSec: number | null;
@@ -1584,7 +1603,7 @@ export function parseCampaignSave(
       : 0;
   const selectedIdx = Math.max(0, Math.min(maxUnlockedIdx, rawSelected));
 
-  const expertModeUnlocked = Boolean(src.expertModeUnlocked || completed[totalLevels - 1]);
+  const expertModeUnlocked = Boolean(src.expertModeUnlocked || completed[19] || completed[totalLevels - 1]);
   const expertModeEnabled = expertModeUnlocked ? Boolean(src.expertModeEnabled) : false;
 
   const rawWeapons =
@@ -1671,7 +1690,13 @@ export function recordLevelCompletionSave(
     }
   }
 
-  const expertModeUnlocked = Boolean(save.expertModeUnlocked || nextCompleted[totalLevels - 1] || levelIdx >= totalLevels - 1);
+  const expertModeUnlocked = Boolean(
+    save.expertModeUnlocked ||
+      nextCompleted[19] ||
+      nextCompleted[totalLevels - 1] ||
+      levelIdx === 19 ||
+      levelIdx >= totalLevels - 1
+  );
 
   return {
     version: 1,
@@ -2243,5 +2268,202 @@ export function evaluateIcebreakerBossOutcome(bossHp: number, playerHp: number):
   return 'playing';
 }
 
+// =========================================================
+// LEVEL 6 EXPANSION: HARBOR CART RACE & ARCADE DRIFT PHYSICS
+// =========================================================
+export interface HarborCheckpointState {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  reached: boolean;
+}
 
+export function evaluateHarborCheckpointStep(
+  playerX: number,
+  playerY: number,
+  vehicle: string,
+  checkpoints: HarborCheckpointState[],
+  activeIdx: number
+): { nextIdx: number; capturedIdx: number | null; completedAll: boolean } {
+  if (checkpoints.length === 0) {
+    return { nextIdx: 0, capturedIdx: null, completedAll: false };
+  }
+  if (activeIdx >= checkpoints.length) {
+    return { nextIdx: checkpoints.length, capturedIdx: null, completedAll: true };
+  }
+  if (vehicle !== 'cart' && vehicle !== 'jeep') {
+    if (activeIdx < 0) {
+      return { nextIdx: 0, capturedIdx: null, completedAll: false };
+    }
+    return { nextIdx: activeIdx, capturedIdx: null, completedAll: false };
+  }
+  if (activeIdx < 0) {
+    return { nextIdx: 0, capturedIdx: null, completedAll: false };
+  }
+  const cp = checkpoints[activeIdx];
+  if (Math.hypot(playerX - cp.x, playerY - cp.y) <= cp.radius) {
+    const nextIdx = activeIdx + 1;
+    return {
+      nextIdx,
+      capturedIdx: activeIdx,
+      completedAll: nextIdx >= checkpoints.length,
+    };
+  }
+  return { nextIdx: activeIdx, capturedIdx: null, completedAll: false };
+}
 
+export type HarborRaceOutcome = 'racing' | 'won' | 'lost_rival' | 'lost_wrecked';
+
+export function evaluateHarborRaceOutcome(
+  playerDone: boolean,
+  rivalDone: boolean,
+  cartDisabled: boolean
+): HarborRaceOutcome {
+  if (cartDisabled) return 'lost_wrecked';
+  if (playerDone) return 'won';
+  if (rivalDone) return 'lost_rival';
+  return 'racing';
+}
+
+export function isHarborRaceGateUnlocked(raceWon: boolean): boolean {
+  return Boolean(raceWon);
+}
+
+export function stepArcadeCartVelocity(
+  vx: number,
+  vy: number,
+  angle: number,
+  inputX: number,
+  inputY: number,
+  maxSpeed: number,
+  accel: number,
+  dt: number
+): { vx: number; vy: number; slipSpeed: number } {
+  const mag = Math.hypot(inputX, inputY);
+  const fwdX = Math.cos(angle);
+  const fwdY = Math.sin(angle);
+  const rightX = -fwdY;
+  const rightY = fwdX;
+
+  let forwardVel = vx * fwdX + vy * fwdY;
+  let lateralVel = vx * rightX + vy * rightY;
+
+  if (mag > 0.05) {
+    const targetSpeed = maxSpeed * Math.min(1, mag);
+    const projFwd = (inputX * fwdX + inputY * fwdY) * targetSpeed;
+    const projLat = (inputX * rightX + inputY * rightY) * targetSpeed;
+    const fwdBlend = Math.min(1, (accel / Math.max(1, maxSpeed)) * dt * 1.15);
+    // Lower lateral blend creates smooth controlled corner drift
+    const latBlend = Math.min(1, 5.2 * dt);
+    forwardVel += (projFwd - forwardVel) * fwdBlend;
+    lateralVel += (projLat - lateralVel) * latBlend;
+  } else {
+    const dampFwd = Math.exp(-4.6 * dt);
+    const dampLat = Math.exp(-5.8 * dt);
+    forwardVel *= dampFwd;
+    lateralVel *= dampLat;
+  }
+
+  const nextVx = fwdX * forwardVel + rightX * lateralVel;
+  const nextVy = fwdY * forwardVel + rightY * lateralVel;
+  const curSpeed = Math.hypot(nextVx, nextVy);
+  if (curSpeed > maxSpeed) {
+    const scale = maxSpeed / curSpeed;
+    return {
+      vx: nextVx * scale,
+      vy: nextVy * scale,
+      slipSpeed: Math.abs(lateralVel) * scale,
+    };
+  }
+  return { vx: nextVx, vy: nextVy, slipSpeed: Math.abs(lateralVel) };
+}
+
+// =========================================================
+// ACTO II: OPERACIÓN ISLA VOLCÁNICA (N21 - N25)
+// =========================================================
+export function isPlayerHiddenByCamouflage(stealthTimer: number): boolean {
+  return stealthTimer > 0;
+}
+
+export interface GrappleAnchor {
+  id?: string;
+  px: number;
+  py: number;
+}
+
+export function findGrappleAnchorTarget<T extends GrappleAnchor>(
+  px: number,
+  py: number,
+  pAngle: number,
+  anchors: T[],
+  maxRange = 390,
+  maxAngleDiff = 1.25
+): T | null {
+  let best: T | null = null;
+  let bestScore = Infinity;
+  for (const anchor of anchors) {
+    const dx = anchor.px - px;
+    const dy = anchor.py - py;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 34 || dist > maxRange) continue;
+    const angDiff = Math.abs(angleDiff(Math.atan2(dy, dx), pAngle));
+    if (angDiff > maxAngleDiff) continue;
+    const score = dist + angDiff * 140;
+    if (score < bestScore) {
+      bestScore = score;
+      best = anchor;
+    }
+  }
+  return best;
+}
+
+export function areAllTropicalAntennasDisabled(antennas: Array<{ disabled: boolean }>): boolean {
+  if (!antennas || antennas.length === 0) return false;
+  return antennas.every((a) => Boolean(a.disabled));
+}
+
+export function areAllTempleAltarsActive(altars: Array<{ activated: boolean }>): boolean {
+  if (!altars || altars.length === 0) return false;
+  return altars.every((a) => Boolean(a.activated));
+}
+
+export interface BubbleCurrentZone {
+  px: number;
+  py: number;
+  radius: number;
+  vx: number;
+  vy: number;
+}
+
+export function getBubbleCurrentForce(
+  px: number,
+  py: number,
+  currents: BubbleCurrentZone[],
+  elapsedSec: number
+): Vec2 {
+  let totalVx = 0;
+  let totalVy = 0;
+  for (let i = 0; i < currents.length; i++) {
+    const c = currents[i];
+    const dist = Math.hypot(px - c.px, py - c.py);
+    if (dist <= c.radius) {
+      const falloff = clamp(1 - (dist / Math.max(1, c.radius)) * 0.45, 0.45, 1.0);
+      const pulse = 0.85 + 0.15 * Math.sin(elapsedSec * 4.2 + i * 1.1);
+      totalVx += c.vx * falloff * pulse;
+      totalVy += c.vy * falloff * pulse;
+    }
+  }
+  return { x: totalVx, y: totalVy };
+}
+
+export function evaluateJeepRaceOutcome(
+  playerDone: boolean,
+  anyRivalDone: boolean,
+  jeepDisabled: boolean
+): HarborRaceOutcome {
+  if (jeepDisabled) return 'lost_wrecked';
+  if (playerDone) return 'won';
+  if (anyRivalDone) return 'lost_rival';
+  return 'racing';
+}
