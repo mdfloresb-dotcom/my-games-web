@@ -416,17 +416,33 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
       if (lvl.id === 25) {
         assert.equal(lvl.theme, 'volcano_caves_sub', 'N25 must use volcano_caves_sub theme');
         assert.equal(lvl.initialVehicle, 'submarine', 'N25 must start mounted inside mini-submarine');
+        assert.equal(lvl.snowstorm || false, false, 'N25 must not have snowstorm');
+        assert.ok(!lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), 'N25 must NOT spawn cryo_snow pickups');
         assert.ok(!lvl.grid.some((r) => r.includes('G')), 'N25 volcanic underwater cave must contain ZERO icebergs G');
         assert.equal((lvl.movingIcebergs || []).length, 0, 'N25 must not spawn movingIcebergs');
-        assert.ok((lvl.bubbleCurrents || []).length >= 4, 'N25 must include >= 4 bubbleCurrents');
-        assert.ok((lvl.steamVents || []).length >= 4, 'N25 must include >= 4 steam vents');
-        assert.ok((lvl.seaMines || []).length >= 4, 'N25 must include >= 4 sea mines');
-        assert.ok((lvl.drones || []).length >= 3, 'N25 must include >= 3 underwater drones');
+        assert.ok(cols >= 42 && rows >= 88, `N25 expanded cavern expected >=42x88, got ${cols}x${rows}`);
+        assert.ok((lvl.bubbleCurrents || []).length >= 6, 'N25 must include >= 6 bubbleCurrents');
+        assert.ok((lvl.steamVents || []).length >= 6, 'N25 must include >= 6 steam vents');
+        assert.ok((lvl.seaMines || []).length >= 10, 'N25 must include >= 10 sea mines');
+        assert.ok((lvl.drones || []).length >= 5, 'N25 must include >= 5 underwater drones');
+        assert.ok((lvl.envProps || []).length >= 20, 'N25 must include dense underwater props');
         const walkableSubWater = (c: number, r: number) => {
           const ch = lvl.grid[r]?.[c];
           return ch === 'W' || ch === 'P' || ch === 'E';
         };
         assert.ok(walkableSubWater(startC, startR), `${lvl.code}: submarine spawn must be open water`);
+        for (const pk of lvl.pickups) {
+          assert.ok(
+            findNextGridStep(startC, startR, Math.floor(pk.x), Math.floor(pk.y), cols, rows, walkableSubWater) !== null,
+            `N25 pickup at (${pk.x},${pk.y}) must be reachable in submarine cavern`
+          );
+        }
+        for (const dr of lvl.drones || []) {
+          assert.ok(dr.waypoints.length >= 2, `N25 drone ${dr.name} needs >= 2 waypoints`);
+          for (const wp of dr.waypoints) {
+            assert.ok(walkableSubWater(Math.floor(wp.x), Math.floor(wp.y)), `N25 drone ${dr.name} waypoint (${wp.x},${wp.y}) must be water`);
+          }
+        }
         let subExitReachable = false;
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
@@ -687,34 +703,53 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     // Campaign 2 Act II: Volcanic Island (N21-N24 surface)
     if (lvl.id >= 21 && lvl.id <= 24) {
       assert.equal(lvl.snowstorm || false, false, `${lvl.code}: Volcanic Island must not have snowstorms`);
+      assert.ok(!lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), `${lvl.code}: Volcanic Island must not spawn cryo_snow`);
+      assert.ok((lvl.envProps || []).length >= 20, `${lvl.code}: expanded Volcanic Island level needs >= 20 visual props`);
       if (lvl.id === 21) {
         assert.equal(lvl.theme, 'tropical_beach', 'N21 must use tropical_beach theme');
-        assert.equal((lvl.tropicalAntennas || []).length, 3, 'N21 must have 3 coastal antennas');
-        assert.ok((lvl.spotlights || []).length >= 3, 'N21 must include sweeping spotlights');
+        assert.ok(cols >= 68 && rows >= 32, `N21 expanded coast expected >=68x32, got ${cols}x${rows}`);
+        assert.equal((lvl.tropicalAntennas || []).length, 4, 'N21 must have 4 coastal antennas');
+        assert.equal((lvl.switches || []).length, 2, 'N21 must have 2 switches for compound gate');
+        assert.ok(expandedDoors.some((d) => d.type === 'switches'), 'N21 must lock antenna compound behind switches gate');
         assert.ok(expandedDoors.some((d) => d.type === 'tropical_antennas'), 'N21 must lock exit behind tropical_antennas gate');
+        assert.ok((lvl.spotlights || []).length >= 5, 'N21 must include >= 5 sweeping spotlights');
+        assert.ok(lvl.guards.length >= 7, 'N21 must include >= 7 patrolling guards');
       }
       if (lvl.id === 22) {
         assert.equal(lvl.theme, 'biolum_jungle', 'N22 must use biolum_jungle theme');
+        assert.ok(cols >= 66 && rows >= 32, `N22 expanded jungle expected >=66x32, got ${cols}x${rows}`);
         assert.ok(lvl.pickups.some((pk) => pk.weapon === 'camouflage'), 'N22 must include Tropical Camouflage pickup');
-        assert.ok((lvl.lasers || []).length >= 3, 'N22 must include cyclical lasers');
-        assert.ok((lvl.cameras || []).length >= 3, 'N22 must include security cameras');
+        assert.ok((lvl.lasers || []).length >= 5, 'N22 must include >= 5 cyclical lasers');
+        assert.ok((lvl.cameras || []).length >= 6, 'N22 must include >= 6 cross-angled cameras');
+        assert.ok((lvl.drones || []).length >= 3, 'N22 must include >= 3 jungle surveillance drones');
+        assert.ok(lvl.guards.length >= 8, 'N22 must include >= 8 patrolling guards');
         assert.ok(expandedDoors.some((d) => d.type === 'keycard' && d.keyColor === 'blue'), 'N22 must lock exit behind blue keycard door');
       }
       if (lvl.id === 23) {
         assert.equal(lvl.theme, 'volcano_ruins', 'N23 must use volcano_ruins theme');
+        assert.ok(cols >= 72 && rows >= 34, `N23 expanded temple expected >=72x34, got ${cols}x${rows}`);
         assert.ok(lvl.pickups.some((pk) => pk.weapon === 'grapple'), 'N23 must include Grappling Hook pickup');
-        assert.ok((lvl.grappleAnchors || []).length >= 8, 'N23 must include >= 8 grappleAnchors');
-        assert.equal((lvl.templeAltars || []).length, 3, 'N23 must include 3 templeAltars');
+        assert.ok((lvl.grappleAnchors || []).length >= 14, 'N23 must include >= 14 grappleAnchors');
+        assert.equal((lvl.templeAltars || []).length, 4, 'N23 must include 4 templeAltars');
         assert.ok(expandedDoors.some((d) => d.type === 'temple_altars'), 'N23 must lock exit behind temple_altars gate');
-        assert.ok((lvl.fireGeysers || []).length >= 3, 'N23 must include fireGeysers');
-        assert.ok((lvl.drones || []).length >= 2, 'N23 must include patrolling drones');
+        assert.ok((lvl.fireGeysers || []).length >= 6, 'N23 must include >= 6 fireGeysers');
+        assert.ok((lvl.drones || []).length >= 3, 'N23 must include >= 3 patrolling drones');
+        assert.ok(lvl.guards.length >= 5, 'N23 must include >= 5 temple custodians');
+        const propKinds = new Set((lvl.envProps || []).map((p) => p.kind));
+        assert.ok(propKinds.has('temple_pillar'), 'N23 Golden Temple must include temple_pillar props');
+        assert.ok(propKinds.has('gold_statue'), 'N23 Golden Temple must include gold_statue props');
       }
       if (lvl.id === 24) {
         assert.equal(lvl.theme, 'jungle_jeep', 'N24 must use jungle_jeep theme');
+        assert.ok(cols >= 112 && rows >= 38, `N24 expanded 4-tier jeep circuit expected >=112x38, got ${cols}x${rows}`);
         assert.ok(lvl.vehicles.some((v) => v.kind === 'jeep'), 'N24 must include playable Jeep 4x4');
-        assert.ok((lvl.boostPads || []).length >= 5, 'N24 must include >= 5 turbo boostPads');
-        assert.equal((lvl.raceCheckpoints || []).length, 3, 'N24 must include 3 raceCheckpoints');
+        assert.ok((lvl.boostPads || []).length >= 10, 'N24 must include >= 10 turbo boostPads');
+        assert.equal((lvl.raceCheckpoints || []).length, 4, 'N24 must include 4 raceCheckpoints');
         assert.equal((lvl.racePatrols || []).length, 2, 'N24 must include 2 rival hunter 4x4 trucks');
+        for (const rp of lvl.racePatrols || []) {
+          assert.ok(rp.speed >= 305, `N24 rival 4x4 ${rp.name} speed >= 305 expected (+25% boost), got ${rp.speed}`);
+        }
+        assert.ok(lvl.guards.length >= 4, 'N24 must include >= 4 roadside guards');
         assert.ok(expandedDoors.some((d) => d.type === 'jeep_race'), 'N24 must lock exit behind jeep_race gate');
       }
     }
