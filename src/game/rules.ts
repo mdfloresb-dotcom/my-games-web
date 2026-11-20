@@ -1721,7 +1721,7 @@ export function recordLevelCompletionSave(
 // =========================================================
 export function canWeaponStunDrone(weaponType: string, fishOnly: boolean): boolean {
   if (!fishOnly) return true;
-  return weaponType === 'fish' || weaponType === 'cryo_snow';
+  return weaponType === 'fish' || weaponType === 'cryo_snow' || weaponType === 'sonic_torpedo';
 }
 
 /**
@@ -2467,3 +2467,63 @@ export function evaluateJeepRaceOutcome(
   if (anyRivalDone) return 'lost_rival';
   return 'racing';
 }
+
+export function hasAllRequiredKeycards(
+  collectedKeys: Set<string> | Iterable<string>,
+  door: { keyColor?: string; requiredKeys?: string[] }
+): boolean {
+  const keySet = collectedKeys instanceof Set ? collectedKeys : new Set(collectedKeys);
+  if (Array.isArray(door.requiredKeys) && door.requiredKeys.length > 0) {
+    return door.requiredKeys.every((k) => keySet.has(k));
+  }
+  return door.keyColor ? keySet.has(door.keyColor) : false;
+}
+
+export type TrackObstacleKind = 'rock' | 'log' | 'pothole';
+
+export function applyTrackObstacleImpact(
+  kind: TrackObstacleKind,
+  vx: number,
+  vy: number
+): { vx: number; vy: number; slowTimer: number; solidPush: boolean } {
+  if (kind === 'pothole') {
+    return { vx: vx * 0.42, vy: vy * 0.42, slowTimer: 1.05, solidPush: false };
+  }
+  if (kind === 'log') {
+    return { vx: vx * 0.25, vy: vy * 0.25, slowTimer: 0.72, solidPush: true };
+  }
+  return { vx: vx * 0.16, vy: vy * 0.16, slowTimer: 0.58, solidPush: true };
+}
+
+export function applySubmarineSharkHit(
+  hullHp: number,
+  invulnTimer = 0
+): {
+  hullHp: number;
+  slowDuration: number;
+  invulnDuration: number;
+  knockbackSpeed: number;
+  damaged: boolean;
+  restartCave: boolean;
+} {
+  if (invulnTimer > 0) {
+    return {
+      hullHp,
+      slowDuration: 0,
+      invulnDuration: 0,
+      knockbackSpeed: 0,
+      damaged: false,
+      restartCave: false,
+    };
+  }
+  const nextHp = Math.max(0, hullHp - 50);
+  return {
+    hullHp: nextHp,
+    slowDuration: nextHp > 0 ? 2.2 : 0,
+    invulnDuration: nextHp > 0 ? 1.0 : 0,
+    knockbackSpeed: 260,
+    damaged: true,
+    restartCave: nextHp <= 0,
+  };
+}
+

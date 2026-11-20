@@ -82,6 +82,9 @@ import {
   areAllTempleAltarsActive,
   getBubbleCurrentForce,
   evaluateJeepRaceOutcome,
+  hasAllRequiredKeycards,
+  applyTrackObstacleImpact,
+  applySubmarineSharkHit,
   type CircuitTile,
   type RushHourBlock,
 } from './rules';
@@ -331,7 +334,7 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     grid: string[];
     spawn: { x: number; y: number };
     initialVehicle?: string;
-    doors: Array<{ id?: string; col: number; row?: number; rows?: number[]; type: string; keyColor?: string; gateId?: number; label?: string }>;
+    doors: Array<{ id?: string; col: number; row?: number; rows?: number[]; type: string; keyColor?: string; requiredKeys?: string[]; gateId?: number; label?: string }>;
     pickups: Array<{ id?: string; kind: string; weapon?: string; keyColor?: string; x: number; y: number; label?: string }>;
     switches?: Array<{ x: number; y: number; label: string }>;
     pressureButtons?: Array<{ x: number; y: number; duration: number; label: string }>;
@@ -367,7 +370,10 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     grappleAnchors?: Array<{ id: string; x: number; y: number }>;
     templeAltars?: Array<{ id: string; x: number; y: number }>;
     boostPads?: Array<{ x: number; y: number; angle?: number }>;
+    trackObstacles?: Array<{ kind: string; x: number; y: number; radius?: number }>;
     bubbleCurrents?: Array<{ id?: number; x: number; y: number; radius: number; vx: number; vy: number }>;
+    enemySubs?: Array<{ name: string; speed: number; chaseSpeed?: number; range?: number; fov?: number; waypoints: Array<{ x: number; y: number }> }>;
+    movingSharks?: Array<{ name?: string; x1: number; y1: number; x2: number; y2: number; speed?: number; radius?: number }>;
     steamVents?: Array<{ x: number; y: number; period?: number; activeDur?: number; phaseOffset?: number; radius?: number }>;
     drones?: Array<{ name?: string; speed: number; fov?: number; range?: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
     postSubgameDrones?: Array<{ name: string; speed: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
@@ -442,6 +448,18 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
           for (const wp of dr.waypoints) {
             assert.ok(walkableSubWater(Math.floor(wp.x), Math.floor(wp.y)), `N25 drone ${dr.name} waypoint (${wp.x},${wp.y}) must be water`);
           }
+        }
+        assert.ok((lvl.enemySubs || []).length >= 4, 'N25 must include >= 4 patrolling enemy submarines');
+        for (const es of lvl.enemySubs || []) {
+          assert.ok(es.waypoints.length >= 2, `N25 enemySub ${es.name} needs >= 2 waypoints`);
+          for (const wp of es.waypoints) {
+            assert.ok(walkableSubWater(Math.floor(wp.x), Math.floor(wp.y)), `N25 enemySub ${es.name} waypoint (${wp.x},${wp.y}) must be water`);
+          }
+        }
+        assert.ok((lvl.movingSharks || []).length >= 5, 'N25 must include >= 5 patrolling sharks');
+        for (const sh of lvl.movingSharks || []) {
+          assert.ok(walkableSubWater(Math.floor(sh.x1), Math.floor(sh.y1)), `N25 shark ${sh.name} start must be water`);
+          assert.ok(walkableSubWater(Math.floor(sh.x2), Math.floor(sh.y2)), `N25 shark ${sh.name} end must be water`);
         }
         let subExitReachable = false;
         for (let r = 0; r < rows; r++) {
@@ -719,11 +737,16 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
         assert.equal(lvl.theme, 'biolum_jungle', 'N22 must use biolum_jungle theme');
         assert.ok(cols >= 66 && rows >= 32, `N22 expanded jungle expected >=66x32, got ${cols}x${rows}`);
         assert.ok(lvl.pickups.some((pk) => pk.weapon === 'camouflage'), 'N22 must include Tropical Camouflage pickup');
-        assert.ok((lvl.lasers || []).length >= 5, 'N22 must include >= 5 cyclical lasers');
-        assert.ok((lvl.cameras || []).length >= 6, 'N22 must include >= 6 cross-angled cameras');
-        assert.ok((lvl.drones || []).length >= 3, 'N22 must include >= 3 jungle surveillance drones');
-        assert.ok(lvl.guards.length >= 8, 'N22 must include >= 8 patrolling guards');
-        assert.ok(expandedDoors.some((d) => d.type === 'keycard' && d.keyColor === 'blue'), 'N22 must lock exit behind blue keycard door');
+        assert.ok(lvl.pickups.some((pk) => pk.kind === 'keycard' && pk.keyColor === 'blue'), 'N22 must include Keycard A (blue)');
+        assert.ok(lvl.pickups.some((pk) => pk.kind === 'keycard' && pk.keyColor === 'gold'), 'N22 must include Keycard D (gold)');
+        assert.ok((lvl.lasers || []).length >= 6, 'N22 must include >= 6 cyclical lasers');
+        assert.ok((lvl.cameras || []).length >= 7, 'N22 must include >= 7 cross-angled cameras');
+        assert.ok((lvl.drones || []).length >= 4, 'N22 must include >= 4 jungle surveillance drones');
+        assert.ok(lvl.guards.length >= 10, 'N22 must include >= 10 patrolling guards');
+        assert.ok(
+          expandedDoors.some((d) => d.type === 'keycard' && Array.isArray(d.requiredKeys) && d.requiredKeys.includes('blue') && d.requiredKeys.includes('gold')),
+          'N22 exit door must require BOTH keycards A (blue) and D (gold)'
+        );
       }
       if (lvl.id === 23) {
         assert.equal(lvl.theme, 'volcano_ruins', 'N23 must use volcano_ruins theme');
@@ -744,10 +767,19 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
         assert.ok(cols >= 112 && rows >= 38, `N24 expanded 4-tier jeep circuit expected >=112x38, got ${cols}x${rows}`);
         assert.ok(lvl.vehicles.some((v) => v.kind === 'jeep'), 'N24 must include playable Jeep 4x4');
         assert.ok((lvl.boostPads || []).length >= 10, 'N24 must include >= 10 turbo boostPads');
+        assert.ok((lvl.trackObstacles || []).length >= 12, 'N24 must include >= 12 physical trackObstacles');
+        const obsKinds = new Set((lvl.trackObstacles || []).map((o) => o.kind));
+        assert.ok(obsKinds.has('rock') && obsKinds.has('log') && obsKinds.has('pothole'), 'N24 trackObstacles must include rock, log, and pothole');
+        for (const obs of lvl.trackObstacles || []) {
+          assert.ok(!isStaticObstacleChar(lvl.grid[Math.floor(obs.y)]?.[Math.floor(obs.x)]), `N24 obstacle at (${obs.x},${obs.y}) must be on open track`);
+          for (const bp of lvl.boostPads || []) {
+            assert.ok(Math.hypot(obs.x - bp.x, obs.y - bp.y) >= 3, `N24 obstacle at (${obs.x},${obs.y}) must not overlap boostPad`);
+          }
+        }
         assert.equal((lvl.raceCheckpoints || []).length, 4, 'N24 must include 4 raceCheckpoints');
         assert.equal((lvl.racePatrols || []).length, 2, 'N24 must include 2 rival hunter 4x4 trucks');
         for (const rp of lvl.racePatrols || []) {
-          assert.ok(rp.speed >= 305, `N24 rival 4x4 ${rp.name} speed >= 305 expected (+25% boost), got ${rp.speed}`);
+          assert.ok(rp.speed >= 385, `N24 rival 4x4 ${rp.name} speed >= 385 expected (+25% boost), got ${rp.speed}`);
         }
         assert.ok(lvl.guards.length >= 4, 'N24 must include >= 4 roadside guards');
         assert.ok(expandedDoors.some((d) => d.type === 'jeep_race'), 'N24 must lock exit behind jeep_race gate');
@@ -1161,7 +1193,7 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
         if (d.type === 'lockpick' || d.type === 'hack') {
           opened.add(key);
           changed = true;
-        } else if (d.type === 'keycard' && d.keyColor && hasKey.has(d.keyColor)) {
+        } else if (d.type === 'keycard' && hasAllRequiredKeycards(hasKey, d)) {
           opened.add(key);
           changed = true;
         } else if (d.type === 'switches' && (lvl.switches || []).length > 0 && activeSwitches.size === (lvl.switches || []).length) {
@@ -1464,6 +1496,7 @@ test('N3 fishOnly armored drones reject darts and allow fish / cryo_snow stuns',
   assert.equal(canWeaponStunDrone('dart', true), false);
   assert.equal(canWeaponStunDrone('fish', true), true);
   assert.equal(canWeaponStunDrone('cryo_snow', true), true);
+  assert.equal(canWeaponStunDrone('sonic_torpedo', true), true);
 });
 
 test('Act V mechanics: cyclical snowstorms, thermal beacons, crevasse falls, magnetic harpoon pull, 4-penguin weight plates, and generator power', () => {
@@ -1704,6 +1737,41 @@ test('Campaign 2 Volcanic Island helpers: camouflage, grapple anchors, antennas,
   assert.equal(evaluateJeepRaceOutcome(false, true, false), 'lost_rival');
   assert.equal(evaluateJeepRaceOutcome(true, false, true), 'lost_wrecked');
 });
+
+test('N22 dual keycards, N24 track obstacles, and N25 submarine shark 2-hit restart mechanics behave accurately', () => {
+  const dualDoor = { keyColor: 'blue', requiredKeys: ['blue', 'gold'] };
+  assert.equal(hasAllRequiredKeycards(new Set(), dualDoor), false);
+  assert.equal(hasAllRequiredKeycards(new Set(['blue']), dualDoor), false);
+  assert.equal(hasAllRequiredKeycards(new Set(['gold']), dualDoor), false);
+  assert.equal(hasAllRequiredKeycards(new Set(['blue', 'gold']), dualDoor), true);
+  assert.equal(hasAllRequiredKeycards(new Set(['blue']), { keyColor: 'blue' }), true);
+
+  const rockHit = applyTrackObstacleImpact('rock', 300, 100);
+  assert.equal(rockHit.solidPush, true);
+  assert.ok(rockHit.vx < 60 && rockHit.slowTimer > 0.4);
+  const logHit = applyTrackObstacleImpact('log', 300, 0);
+  assert.equal(logHit.solidPush, true);
+  assert.ok(logHit.vx < 90 && logHit.slowTimer > 0.6);
+  const potholeHit = applyTrackObstacleImpact('pothole', 300, 0);
+  assert.equal(potholeHit.solidPush, false);
+  assert.ok(potholeHit.vx < 140 && potholeHit.slowTimer >= 1.0);
+
+  const firstShark = applySubmarineSharkHit(100, 0);
+  assert.equal(firstShark.damaged, true);
+  assert.equal(firstShark.hullHp, 50);
+  assert.equal(firstShark.restartCave, false);
+  assert.ok(firstShark.knockbackSpeed >= 240 && firstShark.slowDuration >= 2.0);
+
+  const invulnShark = applySubmarineSharkHit(50, 0.5);
+  assert.equal(invulnShark.damaged, false);
+  assert.equal(invulnShark.restartCave, false);
+
+  const secondShark = applySubmarineSharkHit(50, 0);
+  assert.equal(secondShark.damaged, true);
+  assert.equal(secondShark.hullHp, 0);
+  assert.equal(secondShark.restartCave, true);
+});
+
 
 
 

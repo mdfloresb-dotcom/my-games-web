@@ -2986,7 +2986,7 @@
 
       function canWeaponStunDrone(weaponType, fishOnly) {
         if (!fishOnly) return true;
-        return weaponType === 'fish' || weaponType === 'cryo_snow';
+        return weaponType === 'fish' || weaponType === 'cryo_snow' || weaponType === 'sonic_torpedo';
       }
 
       function getSnowstormIntensity(elapsedSec) {
@@ -3414,6 +3414,45 @@
         return 'racing';
       }
 
+      function hasAllRequiredKeycards(collectedKeys, door) {
+        if (Array.isArray(door.requiredKeys) && door.requiredKeys.length > 0) {
+          return door.requiredKeys.every((k) => collectedKeys.has(k));
+        }
+        return door.keyColor ? collectedKeys.has(door.keyColor) : false;
+      }
+
+      function applyTrackObstacleImpact(kind, vx, vy) {
+        if (kind === 'pothole') {
+          return { vx: vx * 0.42, vy: vy * 0.42, slowTimer: 1.05, solidPush: false };
+        }
+        if (kind === 'log') {
+          return { vx: vx * 0.25, vy: vy * 0.25, slowTimer: 0.72, solidPush: true };
+        }
+        return { vx: vx * 0.16, vy: vy * 0.16, slowTimer: 0.58, solidPush: true };
+      }
+
+      function applySubmarineSharkHit(hullHp, invulnTimer = 0) {
+        if (invulnTimer > 0) {
+          return {
+            hullHp,
+            slowDuration: 0,
+            invulnDuration: 0,
+            knockbackSpeed: 0,
+            damaged: false,
+            restartCave: false
+          };
+        }
+        const nextHp = Math.max(0, hullHp - 50);
+        return {
+          hullHp: nextHp,
+          slowDuration: nextHp > 0 ? 2.2 : 0,
+          invulnDuration: nextHp > 0 ? 1.0 : 0,
+          knockbackSpeed: 260,
+          damaged: true,
+          restartCave: nextHp <= 0
+        };
+      }
+
       function stepArcadeCartVelocity(vx, vy, angle, inputX, inputY, maxSpeed, accel, dt) {
         const mag = Math.hypot(inputX, inputY);
         const fwdX = Math.cos(angle);
@@ -3813,6 +3852,9 @@
           } else if (type === 'camouflage') {
             this.tone(360, 720, 0.18, 'sine', 0.12, 0);
             this.tone(540, 1080, 0.16, 'triangle', 0.09, 0.05);
+          } else if (type === 'sonic_torpedo') {
+            this.tone(1160, 480, 0.14, 'sine', 0.14, 0);
+            this.tone(680, 220, 0.18, 'triangle', 0.12, 0.03);
           } else {
             this.tone(980, 460, 0.08, 'triangle', 0.09);
           }
@@ -7828,7 +7870,7 @@
           shortLabel: 'Selva',
           name: 'Selva Bioluminiscente',
           theme: 'biolum_jungle',
-          subtitle: 'Laberinto nocturno de espesura: activa el Camuflaje Tropical en los cuellos de botella vigilados.',
+          subtitle: 'Laberinto nocturno: usa el Camuflaje Tropical para robar las Tarjetas A y D y abrir la salida.',
           guardFovBoost: 0.2,
           rain: false,
           spawn: { x: 2.5, y: 17.5 },
@@ -7869,7 +7911,7 @@
             '####################################################################'
           ],
           doors: [
-            { id: 'door_selva', col: 61, rows: [15, 16, 17, 18], type: 'keycard', keyColor: 'blue', locked: true }
+            { id: 'door_selva', col: 61, rows: [15, 16, 17, 18], type: 'keycard', keyColor: 'blue', requiredKeys: ['blue', 'gold'], locked: true }
           ],
           vehicles: [],
           pickups: [
@@ -7877,14 +7919,16 @@
             { kind: 'gadget', weapon: 'fish', ammo: 4, x: 23.5, y: 31.5 },
             { kind: 'gadget', weapon: 'fish', ammo: 4, x: 38.5, y: 17.5 },
             { kind: 'gadget', weapon: 'fish', ammo: 4, x: 52.5, y: 26.5 },
-            { kind: 'keycard', keyColor: 'blue', label: 'Tarjeta Selva', x: 63.5, y: 4.5 }
+            { kind: 'keycard', keyColor: 'blue', label: 'Tarjeta Selva A', x: 63.5, y: 4.5 },
+            { kind: 'keycard', keyColor: 'gold', label: 'Tarjeta Selva D', x: 64.5, y: 26.5 }
           ],
           lasers: [
             { x1: 16.5, y1: 14.2, x2: 16.5, y2: 17.8, phaseOffset: 0.2, interval: 1.55 },
             { x1: 31.5, y1: 1.2, x2: 31.5, y2: 6.8, phaseOffset: 1.2, interval: 1.6 },
             { x1: 42.5, y1: 14.2, x2: 42.5, y2: 19.8, phaseOffset: 0.8, interval: 1.5 },
             { x1: 57.5, y1: 14.2, x2: 57.5, y2: 19.8, phaseOffset: 0.4, interval: 1.5 },
-            { x1: 58.5, y1: 24.5, x2: 58.5, y2: 29.5, phaseOffset: 1.4, interval: 1.55 }
+            { x1: 58.5, y1: 24.5, x2: 58.5, y2: 29.5, phaseOffset: 1.4, interval: 1.55 },
+            { x1: 60.5, y1: 28.5, x2: 65.5, y2: 28.5, phaseOffset: 0.85, interval: 1.45 }
           ],
           cameras: [
             { x: 18.5, y: 9.5, baseAngle: Math.PI * 0.5, sweep: 0.92, speed: 1.4, range: 225, fov: 0.95 },
@@ -7892,7 +7936,8 @@
             { x: 43.5, y: 6.5, baseAngle: Math.PI * 0.75, sweep: 0.88, speed: 1.42, range: 225, fov: 0.95 },
             { x: 46.5, y: 25.5, baseAngle: -Math.PI * 0.5, sweep: 0.95, speed: 1.52, range: 225, fov: 0.95 },
             { x: 60.5, y: 4.5, baseAngle: Math.PI * 0.25, sweep: 0.85, speed: 1.55, range: 230, fov: 0.98 },
-            { x: 56.5, y: 18.5, baseAngle: Math.PI, sweep: 0.9, speed: 1.5, range: 220, fov: 0.95 }
+            { x: 56.5, y: 18.5, baseAngle: Math.PI, sweep: 0.9, speed: 1.5, range: 220, fov: 0.95 },
+            { x: 65.5, y: 25.5, baseAngle: Math.PI * 0.72, sweep: 0.9, speed: 1.55, range: 235, fov: 1.0 }
           ],
           drones: [
             {
@@ -7929,6 +7974,18 @@
                 { x: 65.5, y: 2.5 },
                 { x: 65.5, y: 6.5 },
                 { x: 58.5, y: 6.5 }
+              ]
+            },
+            {
+              name: 'Dron Bóveda Sur',
+              speed: 138,
+              range: 205,
+              fov: 1.02,
+              waypoints: [
+                { x: 58.5, y: 22.5 },
+                { x: 65.5, y: 22.5 },
+                { x: 65.5, y: 26.5 },
+                { x: 58.5, y: 26.5 }
               ]
             }
           ],
@@ -8049,6 +8106,28 @@
                 { x: 56.5, y: 25.5 },
                 { x: 56.5, y: 28.5 },
                 { x: 44.5, y: 28.5 }
+              ]
+            },
+            {
+              name: 'Custodio Tarjeta D',
+              speed: 156,
+              chaseSpeed: 238,
+              waypoints: [
+                { x: 58.5, y: 25.5 },
+                { x: 65.5, y: 25.5 },
+                { x: 65.5, y: 28.5 },
+                { x: 58.5, y: 28.5 }
+              ]
+            },
+            {
+              name: 'Centinela Bóveda Sur',
+              speed: 152,
+              chaseSpeed: 234,
+              waypoints: [
+                { x: 57.5, y: 30.5 },
+                { x: 65.5, y: 30.5 },
+                { x: 65.5, y: 32.5 },
+                { x: 57.5, y: 32.5 }
               ]
             }
           ]
@@ -8281,7 +8360,7 @@
           shortLabel: 'Jeep 4x4',
           name: 'Persecución en Jeep 4x4',
           theme: 'jungle_jeep',
-          subtitle: 'Circuito volcánico de 4 tramos y 4 balizas: usa los turbos y vence a los 4x4 blindados.',
+          subtitle: 'Circuito volcánico de 4 tramos: esquiva rocas, troncos y baches usando los turbos contra los 4x4.',
           guardFovBoost: 0.08,
           rain: false,
           spawn: { x: 2.5, y: 5.5 },
@@ -8354,10 +8433,26 @@
             { x: 108.5, y: 30.5, angle: Math.PI * 0.5 },
             { x: 58.5, y: 35.5, angle: Math.PI }
           ],
+          trackObstacles: [
+            { kind: 'rock', x: 18.5, y: 7.5, radius: 19 },
+            { kind: 'log', x: 38.5, y: 4.5, radius: 22 },
+            { kind: 'pothole', x: 74.5, y: 4.5, radius: 22 },
+            { kind: 'rock', x: 98.5, y: 7.5, radius: 19 },
+            { kind: 'log', x: 92.5, y: 14.5, radius: 22 },
+            { kind: 'pothole', x: 68.5, y: 17.5, radius: 22 },
+            { kind: 'rock', x: 42.5, y: 13.5, radius: 19 },
+            { kind: 'log', x: 18.5, y: 16.5, radius: 22 },
+            { kind: 'pothole', x: 20.5, y: 24.5, radius: 22 },
+            { kind: 'rock', x: 52.5, y: 27.5, radius: 19 },
+            { kind: 'log', x: 90.5, y: 24.5, radius: 22 },
+            { kind: 'rock', x: 92.5, y: 34.5, radius: 19 },
+            { kind: 'pothole', x: 74.5, y: 37.5, radius: 22 },
+            { kind: 'log', x: 26.5, y: 34.5, radius: 22 }
+          ],
           racePatrols: [
             {
               name: '4x4 Cazador Alfa',
-              speed: 322,
+              speed: 402,
               waypoints: [
                 { x: 16.5, y: 5.0 },
                 { x: 64.5, y: 5.0, cpIdx: 0 },
@@ -8375,7 +8470,7 @@
             },
             {
               name: '4x4 Blindado Beta',
-              speed: 312,
+              speed: 390,
               waypoints: [
                 { x: 19.5, y: 7.0 },
                 { x: 64.5, y: 7.0, cpIdx: 0 },
@@ -8482,7 +8577,7 @@
           theme: 'volcano_caves_sub',
           mode: 'naval',
           initialVehicle: 'submarine',
-          subtitle: 'Navega con el Mini Submarino por las grutas abisales entre corrientes, minas marinas y drones.',
+          subtitle: 'Dispara Torpedos Sónicos [Espacio] a submarinos enemigos y evita los tiburones patrullando (2 choques = reinicio).',
           guardFovBoost: 0.1,
           rain: false,
           spawn: { x: 22.5, y: 88.5 },
@@ -8684,6 +8779,68 @@
                 { x: 11.5, y: 16.5 }
               ]
             }
+          ],
+          enemySubs: [
+            {
+              name: 'Submarino Patrulla Alfa',
+              speed: 130,
+              chaseSpeed: 195,
+              range: 225,
+              fov: 0.88,
+              waypoints: [
+                { x: 11.5, y: 76.5 },
+                { x: 32.5, y: 76.5 },
+                { x: 32.5, y: 81.5 },
+                { x: 11.5, y: 81.5 }
+              ]
+            },
+            {
+              name: 'Submarino Cazador Beta',
+              speed: 138,
+              chaseSpeed: 205,
+              range: 235,
+              fov: 0.90,
+              waypoints: [
+                { x: 32.5, y: 54.5 },
+                { x: 11.5, y: 54.5 },
+                { x: 11.5, y: 59.5 },
+                { x: 32.5, y: 59.5 }
+              ]
+            },
+            {
+              name: 'Submarino Abisal Gamma',
+              speed: 144,
+              chaseSpeed: 212,
+              range: 240,
+              fov: 0.92,
+              waypoints: [
+                { x: 11.5, y: 34.5 },
+                { x: 32.5, y: 34.5 },
+                { x: 32.5, y: 38.5 },
+                { x: 11.5, y: 38.5 }
+              ]
+            },
+            {
+              name: 'Submarino Guardia Delta',
+              speed: 150,
+              chaseSpeed: 220,
+              range: 245,
+              fov: 0.95,
+              waypoints: [
+                { x: 32.5, y: 15.5 },
+                { x: 11.5, y: 15.5 },
+                { x: 11.5, y: 18.5 },
+                { x: 32.5, y: 18.5 }
+              ]
+            }
+          ],
+          movingSharks: [
+            { name: 'Tiburón Abisal 1', x1: 6.5, y1: 73.5, x2: 37.5, y2: 73.5, speed: 1.05, phase: 0.2, radius: 22 },
+            { name: 'Tiburón Abisal 2', x1: 37.5, y1: 62.5, x2: 6.5, y2: 62.5, speed: 1.15, phase: 1.4, radius: 22 },
+            { name: 'Tiburón Magma 3', x1: 7.5, y1: 47.5, x2: 36.5, y2: 47.5, speed: 1.2, phase: 2.3, radius: 22 },
+            { name: 'Tiburón Corriente 4', x1: 36.5, y1: 34.5, x2: 7.5, y2: 34.5, speed: 1.25, phase: 0.7, radius: 22 },
+            { name: 'Tiburón Fosa 5', x1: 6.5, y1: 21.5, x2: 37.5, y2: 21.5, speed: 1.32, phase: 1.9, radius: 22 },
+            { name: 'Tiburón Guardián 6', x1: 36.5, y1: 9.5, x2: 7.5, y2: 9.5, speed: 1.38, phase: 2.8, radius: 23 }
           ],
           envProps: [
             { kind: 'biolum_coral', x: 7.5, y: 86.5 },
@@ -9218,6 +9375,10 @@
         templeAltars: [],
         boostPads: [],
         bubbleCurrents: [],
+        trackObstacles: [],
+        enemySubs: [],
+        enemySubShots: [],
+        movingSharks: [],
         stealthTimer: 0,
         stealthCooldown: 0,
         grappleZip: null,
@@ -9710,6 +9871,10 @@
         state.templeAltars = [];
         state.boostPads = [];
         state.bubbleCurrents = [];
+        state.trackObstacles = [];
+        state.enemySubs = [];
+        state.enemySubShots = [];
+        state.movingSharks = [];
         state.stealthTimer = 0;
         state.stealthCooldown = 0;
         state.grappleZip = null;
@@ -9925,6 +10090,56 @@
           vy: bc.vy || 0,
           phase: bc.phase || 0
         }));
+        state.trackObstacles = (def.trackObstacles || []).map((obs) => ({
+          ...obs,
+          px: obs.x * TILE,
+          py: obs.y * TILE,
+          radius: obs.radius || 20,
+          cooldown: 0
+        }));
+        state.enemySubs = (def.enemySubs || []).map((es, eIdx) => {
+          const pts = (es.waypoints || []).map((w) => ({ x: w.x * TILE, y: w.y * TILE }));
+          const nextPt = pts[1] || pts[0] || { x: 0, y: 0 };
+          return {
+            name: es.name || `Submarino ${eIdx + 1}`,
+            x: pts[0].x,
+            y: pts[0].y,
+            vx: 0,
+            vy: 0,
+            angle: Math.atan2(nextPt.y - pts[0].y, nextPt.x - pts[0].x),
+            radius: 22,
+            speed: (es.speed || 135) * enemySpeedMult,
+            chaseSpeed: (es.chaseSpeed || 205) * enemySpeedMult,
+            range: es.range || 230,
+            fov: es.fov || 0.9,
+            waypoints: pts,
+            wpIdx: 1 % pts.length,
+            state: 'PATROL',
+            chaseTimer: 0,
+            shotCooldown: 1.3 + (eIdx % 2) * 0.55,
+            destroyed: false,
+            hitFlash: 0,
+            wakeTimer: 0,
+            stuckX: pts[0].x,
+            stuckY: pts[0].y,
+            stuckTimer: 0,
+            stuckCount: 0,
+            sweepPhase: eIdx * 1.25
+          };
+        });
+        state.movingSharks = (def.movingSharks || []).map((sh, sIdx) => ({
+          name: sh.name || `Tiburón ${sIdx + 1}`,
+          x1: sh.x1 * TILE,
+          y1: sh.y1 * TILE,
+          x2: sh.x2 * TILE,
+          y2: sh.y2 * TILE,
+          x: sh.x1 * TILE,
+          y: sh.y1 * TILE,
+          angle: Math.atan2(sh.y2 - sh.y1, sh.x2 - sh.x1),
+          speed: sh.speed || 1.15,
+          phase: sh.phase || 0,
+          radius: sh.radius || 22
+        }));
         state.lasers = (def.lasers || []).map((ls) => ({
           x1: ls.x1 * TILE,
           y1: ls.y1 * TILE,
@@ -10134,11 +10349,14 @@
         }
 
         const initVehicle = def.initialVehicle || 'none';
-        const initialWeapons = idx >= 10 && idx < 20 && state.progress && state.progress.weapons && Array.isArray(state.progress.weapons.loadout)
+        let initialWeapons = idx >= 10 && idx < 20 && state.progress && state.progress.weapons && Array.isArray(state.progress.weapons.loadout)
           ? state.progress.weapons.loadout
               .filter((w) => w && w.type && w.ammo > 0)
               .map((w) => ({ type: w.type, ammo: Math.min(18, Math.floor(w.ammo)) }))
           : [];
+        if (initVehicle === 'submarine') {
+          initialWeapons = [{ type: 'sonic_torpedo', ammo: 1, unlimited: true }];
+        }
         const isSeaCraftInit = initVehicle === 'boat' || initVehicle === 'submarine';
         state.player = {
           x: def.spawn.x * TILE,
@@ -11215,12 +11433,19 @@
               return { kind: 'door-lockpick', obj: d, label: 'Abrir Cerradura' };
             }
             if (d.type === 'keycard') {
-              const hasKey = p.keycards.has(d.keyColor);
+              const hasKey = hasAllRequiredKeycards(p.keycards, d);
+              let missingLabel = d.keyColor === 'blue' ? 'Requiere Tarj. Azul' : 'Requiere Tarj. Dorada';
+              if (!hasKey && Array.isArray(d.requiredKeys) && d.requiredKeys.length > 1) {
+                const missing = [];
+                if (d.requiredKeys.includes('blue') && !p.keycards.has('blue')) missing.push('A');
+                if (d.requiredKeys.includes('gold') && !p.keycards.has('gold')) missing.push('D');
+                missingLabel = `Requiere Tarj. ${missing.join(' + ')}`;
+              }
               return {
                 kind: 'door-keycard',
                 obj: d,
                 hasKey,
-                label: hasKey ? 'Desbloquear Puerta' : `Requiere Tarj. ${d.keyColor === 'blue' ? 'Azul' : 'Dorada'}`
+                label: hasKey ? 'Desbloquear Puerta' : missingLabel
               };
             }
             if (d.type === 'switches') {
@@ -13993,15 +14218,33 @@
           return;
         }
 
-        if (w.ammo <= 0) return;
+        if (!w.unlimited && w.ammo <= 0) return;
 
-        w.ammo--;
-        p.fireCooldown = w.type === 'dart' ? 0.28 : (w.type === 'harpoon' ? 0.36 : 0.42);
+        if (!w.unlimited) w.ammo--;
+        p.fireCooldown = w.type === 'dart' ? 0.28 : (w.type === 'sonic_torpedo' ? 0.34 : (w.type === 'harpoon' ? 0.36 : 0.42));
         p.squashX = 0.85;
         p.squashY = 1.15;
 
         const muzzleX = p.x + Math.cos(p.angle) * (p.radius + 8);
         const muzzleY = p.y + Math.sin(p.angle) * (p.radius + 8);
+
+        if (w.type === 'sonic_torpedo') {
+          state.projectiles.push({
+            type: 'sonic_torpedo',
+            x: muzzleX,
+            y: muzzleY,
+            vx: Math.cos(p.angle) * 630,
+            vy: Math.sin(p.angle) * 630,
+            angle: p.angle,
+            life: 1.35,
+            radius: 10
+          });
+          sfx.fire('sonic_torpedo');
+          spawnDirectionalParticles(muzzleX, muzzleY, p.angle, 0.55, 11, '#22D3EE', 75, 220, 2.5, 5.5, 0.38, 'spark');
+          state.ripples.push({ x: muzzleX, y: muzzleY, r: 6, maxR: 48, life: 0.28, color: '#22D3EE' });
+          updateHUD();
+          return;
+        }
 
         if (w.type === 'harpoon') {
           const pullCandidates = [
@@ -14084,7 +14327,7 @@
           spawnParticles(muzzleX, muzzleY, 5, 'rgba(226, 232, 240, 0.7)', 15, 55, 4, 8, 0.45, 'smoke');
         }
 
-        if (w.ammo <= 0) {
+        if (!w.unlimited && w.ammo <= 0) {
           p.weapons.splice(p.activeWeaponIdx, 1);
           p.activeWeaponIdx = 0;
         }
@@ -14429,6 +14672,19 @@
           mi.x = mi.x1 + (mi.x2 - mi.x1) * s;
           mi.y = mi.y1 + (mi.y2 - mi.y1) * s;
         }
+        for (let i = 0; i < state.movingSharks.length; i++) {
+          const sh = state.movingSharks[i];
+          const prevShX = sh.x;
+          const prevShY = sh.y;
+          const s = 0.5 - 0.5 * Math.cos(state.elapsedTime * sh.speed + sh.phase);
+          sh.x = sh.x1 + (sh.x2 - sh.x1) * s;
+          sh.y = sh.y1 + (sh.y2 - sh.y1) * s;
+          const sdx = sh.x - prevShX;
+          const sdy = sh.y - prevShY;
+          if (Math.hypot(sdx, sdy) > 0.05) {
+            sh.angle = Math.atan2(sdy, sdx);
+          }
+        }
 
         // Storm drain ambient steam puffs (Acto II)
         for (let i = 0; i < state.stormDrains.length; i++) {
@@ -14478,6 +14734,35 @@
               sfx.turbo();
               spawnParticles(bp.px, bp.py, 18, '#F59E0B', 55, 210, 2.8, 5.5, 0.45, 'spark');
               state.ripples.push({ x: bp.px, y: bp.py, r: 10, maxR: 120, life: 0.42, color: '#F59E0B' });
+            }
+          }
+
+          // Physical Volcanic Track Obstacles: Rocks, Fallen Logs & Potholes (N24)
+          for (let i = 0; i < state.trackObstacles.length; i++) {
+            const obs = state.trackObstacles[i];
+            obs.cooldown = Math.max(0, obs.cooldown - dt);
+            const odx = p.x - obs.px;
+            const ody = p.y - obs.py;
+            const minD = p.radius + obs.radius;
+            const od = Math.hypot(odx, ody);
+            if (od < minD) {
+              const imp = applyTrackObstacleImpact(obs.kind, p.vx, p.vy);
+              if (imp.solidPush) {
+                const nx = od > 0.001 ? odx / od : 1;
+                const ny = od > 0.001 ? ody / od : 0;
+                p.x = obs.px + nx * minD;
+                p.y = obs.py + ny * minD;
+              }
+              if (obs.cooldown <= 0) {
+                obs.cooldown = obs.kind === 'pothole' ? 0.95 : 0.48;
+                p.vx = imp.vx;
+                p.vy = imp.vy;
+                state.netSlowTimer = Math.max(state.netSlowTimer, imp.slowTimer);
+                state.shakeTrauma = Math.min(1, state.shakeTrauma + (obs.kind === 'pothole' ? 0.25 : 0.36));
+                sfx.trapSnap();
+                const obsCol = obs.kind === 'log' ? '#D97706' : (obs.kind === 'rock' ? '#94A3B8' : '#78350F');
+                spawnParticles(obs.px, obs.py, 14, obsCol, 45, 160, 2.5, 5, 0.38, 'spark');
+              }
             }
           }
 
@@ -14638,7 +14923,7 @@
           spawnParticles(p.x, p.y, 1, 'rgba(30, 41, 59, 0.75)', 10, 35, 2.5, 4.5, 0.3, 'circle');
         }
 
-        // Floating Naval Sea Mines collision (N10)
+        // Floating Naval Sea Mines collision (N10 & N25)
         for (let i = 0; i < state.seaMines.length; i++) {
           const m = state.seaMines[i];
           if (m.neutralized) continue;
@@ -14648,6 +14933,44 @@
             spawnParticles(m.px, m.py, 16, '#F43F5E', 40, 200, 3, 6, 0.55);
             triggerDefeat('mine');
             return;
+          }
+        }
+
+        // Patrolling Underwater Sharks collision (N25: 1st hit knockback + 50% hull, 2nd hit restarts cave)
+        for (let i = 0; i < state.movingSharks.length; i++) {
+          const sh = state.movingSharks[i];
+          const dx = p.x - sh.x;
+          const dy = p.y - sh.y;
+          const minD = p.radius + sh.radius - 2;
+          const dist = Math.hypot(dx, dy);
+          if (dist < minD) {
+            const hitRes = applySubmarineSharkHit(state.hullHp, state.iceInvulnTimer);
+            if (hitRes.damaged) {
+              if (hitRes.restartCave) {
+                sfx.lose();
+                loadLevel(state.levelIdx);
+                state.shakeTrauma = 0.72;
+                showUnlockToast('¡2 impactos de tiburón! Submarino averiado — reiniciando desde el inicio de la cueva', 2800);
+                return;
+              }
+              const nx = dist > 0.001 ? dx / dist : 0;
+              const ny = dist > 0.001 ? dy / dist : 1;
+              const pushed = resolveCircleGridCollision(sh.x + nx * (minD + 8), sh.y + ny * (minD + 8), p.radius, isSolidTile);
+              p.x = pushed.x;
+              p.y = pushed.y;
+              p.vx = nx * hitRes.knockbackSpeed;
+              p.vy = ny * hitRes.knockbackSpeed;
+              state.hullHp = hitRes.hullHp;
+              state.iceSlowTimer = Math.max(state.iceSlowTimer, hitRes.slowDuration);
+              state.iceInvulnTimer = hitRes.invulnDuration;
+              state.boatBlinkTimer = 1.1;
+              state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.55);
+              sfx.explosion();
+              spawnParticles(p.x, p.y, 24, '#F43F5E', 50, 210, 3, 6, 0.5, 'spark');
+              state.ripples.push({ x: p.x, y: p.y, r: 10, maxR: 110, life: 0.42, color: '#F43F5E' });
+              showUnlockToast('¡Mordida de Tiburón (-50% Casco)! 1 golpe más reinicia la cueva', 2400);
+              updateHUD();
+            }
           }
         }
 
@@ -15450,8 +15773,8 @@
             continue;
           }
 
-          // Check hit on naval sea mines (Cryogenic fish freezes/neutralizes mines safely!)
-          if (pr.type === 'fish' || pr.type === 'cryo_snow') {
+          // Check hit on naval sea mines (Cryogenic fish or Sonic Torpedo neutralizes mines!)
+          if (pr.type === 'fish' || pr.type === 'cryo_snow' || pr.type === 'sonic_torpedo') {
             let hitMine = false;
             for (let mIdx = 0; mIdx < state.seaMines.length; mIdx++) {
               const m = state.seaMines[mIdx];
@@ -15465,6 +15788,33 @@
               }
             }
             if (hitMine) {
+              state.projectiles.splice(i, 1);
+              continue;
+            }
+          }
+
+          // Check hit on Enemy Patrol Submarines (N25 Sonic Torpedo destroys enemy subs!)
+          if (pr.type === 'sonic_torpedo') {
+            let hitEnemySub = false;
+            for (let sIdx = 0; sIdx < state.enemySubs.length; sIdx++) {
+              const es = state.enemySubs[sIdx];
+              if (es.destroyed) continue;
+              if (Math.hypot(pr.x - es.x, pr.y - es.y) < es.radius + pr.radius + 6) {
+                es.destroyed = true;
+                es.hitFlash = 0.25;
+                state.guardsStunned++;
+                state.hitstop = 0.045;
+                state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.42);
+                sfx.explosion();
+                spawnParticles(es.x, es.y, 28, '#22D3EE', 55, 220, 3, 6.5, 0.55, 'spark');
+                spawnParticles(es.x, es.y, 14, '#FB923C', 35, 165, 3, 6, 0.5, 'circle');
+                state.ripples.push({ x: es.x, y: es.y, r: 12, maxR: 130, life: 0.45, color: '#22D3EE' });
+                showUnlockToast(`¡${es.name} destruido!`, 1600);
+                hitEnemySub = true;
+                break;
+              }
+            }
+            if (hitEnemySub) {
               state.projectiles.splice(i, 1);
               continue;
             }
@@ -15940,6 +16290,152 @@
           }
         }
 
+        // Enemy Patrol Submarines AI & Hostile Torpedoes (N25)
+        for (let i = 0; i < state.enemySubs.length; i++) {
+          const es = state.enemySubs[i];
+          if (es.destroyed) continue;
+          es.hitFlash = Math.max(0, es.hitFlash - dt);
+          es.shotCooldown = Math.max(0, es.shotCooldown - dt);
+
+          const seesPlayerSub = !hiddenByCamo && isPointInVisionCone(p.x, p.y, es.x, es.y, es.angle, es.fov * 0.5, es.range, isOpaqueTile);
+          if (!hiddenByCamo && (seesPlayerSub || Math.hypot(p.x - es.x, p.y - es.y) < 72)) {
+            playerSeenByAny = true;
+            if (es.state !== 'CHASE') {
+              es.state = 'CHASE';
+              es.chaseTimer = 4.8;
+              state.alertsTriggered++;
+              state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.32);
+              sfx.alert();
+              state.ripples.push({ x: es.x, y: es.y, r: 12, maxR: 135, life: 0.45, color: '#F43F5E' });
+            } else {
+              es.chaseTimer = 4.8;
+            }
+          }
+
+          if (es.state === 'CHASE') {
+            anyChasing = true;
+            es.chaseTimer -= dt;
+            if (es.chaseTimer <= 0 && !seesPlayerSub) {
+              es.state = 'PATROL';
+            }
+          }
+
+          let goalX = p.x;
+          let goalY = p.y;
+          let moveSpeed = es.chaseSpeed;
+          if (es.state === 'PATROL') {
+            moveSpeed = es.speed;
+            const wp = es.waypoints[es.wpIdx];
+            goalX = wp.x;
+            goalY = wp.y;
+            if (Math.hypot(goalX - es.x, goalY - es.y) < 18) {
+              es.wpIdx = (es.wpIdx + 1) % es.waypoints.length;
+              const nextWp = es.waypoints[es.wpIdx];
+              goalX = nextWp.x;
+              goalY = nextWp.y;
+            }
+          } else {
+            const pDist = Math.hypot(p.x - es.x, p.y - es.y);
+            const aimAng = Math.atan2(p.y - es.y, p.x - es.x);
+            const clearShot = pDist < 380 && castGridRay(es.x, es.y, aimAng, pDist, isOpaqueTile, 10) >= pDist - 12;
+            if (clearShot && es.shotCooldown <= 0 && !hiddenByCamo) {
+              es.shotCooldown = 1.75;
+              const mx = es.x + Math.cos(aimAng) * 24;
+              const my = es.y + Math.sin(aimAng) * 24;
+              state.enemySubShots.push({
+                x: mx,
+                y: my,
+                vx: Math.cos(aimAng) * 355,
+                vy: Math.sin(aimAng) * 355,
+                angle: aimAng,
+                life: 1.45,
+                radius: 7
+              });
+              sfx.fire('dart');
+              spawnDirectionalParticles(mx, my, aimAng, 0.5, 6, '#FB923C', 50, 140, 2, 4, 0.3, 'spark');
+            }
+            if (!clearShot) {
+              const step = findNextGridStep(Math.floor(es.x / TILE), Math.floor(es.y / TILE), Math.floor(p.x / TILE), Math.floor(p.y / TILE), state.cols, state.rows, isWalkableForGuard);
+              if (step) {
+                goalX = (step.col + 0.5) * TILE;
+                goalY = (step.row + 0.5) * TILE;
+              }
+            }
+          }
+
+          const dx = goalX - es.x;
+          const dy = goalY - es.y;
+          const distGoal = Math.hypot(dx, dy);
+          if (distGoal > 5) {
+            const sweepOff = es.state === 'PATROL' ? Math.sin(state.elapsedTime * 1.15 + es.sweepPhase) * 0.1 : 0;
+            es.angle = lerpAngle(es.angle, Math.atan2(dy, dx) + sweepOff, dt * 6.8);
+            es.vx = (dx / distGoal) * moveSpeed;
+            es.vy = (dy / distGoal) * moveSpeed;
+            es.x += es.vx * dt;
+            es.y += es.vy * dt;
+            const resEs = resolveCircleGridCollision(es.x, es.y, es.radius, isSolidTile);
+            es.x = resEs.x;
+            es.y = resEs.y;
+
+            es.wakeTimer += dt;
+            if (es.wakeTimer >= 0.1) {
+              es.wakeTimer = 0;
+              spawnDirectionalParticles(
+                es.x - Math.cos(es.angle) * 20,
+                es.y - Math.sin(es.angle) * 20,
+                es.angle + Math.PI,
+                0.55,
+                1,
+                es.state === 'CHASE' ? '#FB7185' : '#5EEAD4',
+                16,
+                48,
+                2.2,
+                3.8,
+                0.35,
+                'circle'
+              );
+            }
+          }
+
+          if (es.state === 'CHASE' && Math.hypot(p.x - es.x, p.y - es.y) < p.radius + es.radius - 2) {
+            triggerDefeat('enemy_sub');
+            return;
+          }
+        }
+
+        // Hostile Enemy Submarine Torpedoes
+        for (let i = state.enemySubShots.length - 1; i >= 0; i--) {
+          const sh = state.enemySubShots[i];
+          sh.x += sh.vx * dt;
+          sh.y += sh.vy * dt;
+          sh.life -= dt;
+          const sc = Math.floor(sh.x / TILE);
+          const sr = Math.floor(sh.y / TILE);
+          if (sh.life <= 0 || isOpaqueTile(sc, sr)) {
+            spawnParticles(sh.x, sh.y, 7, '#FB923C', 25, 100, 2, 4.5, 0.3, 'spark');
+            state.enemySubShots.splice(i, 1);
+            continue;
+          }
+          if (Math.hypot(sh.x - p.x, sh.y - p.y) < p.radius + sh.radius) {
+            state.enemySubShots.splice(i, 1);
+            const imp = applyIcebergImpact(state.hullHp, state.iceInvulnTimer);
+            if (imp.damaged) {
+              state.hullHp = imp.hullHp;
+              state.iceSlowTimer = Math.max(state.iceSlowTimer, 2.0);
+              state.iceInvulnTimer = 0.85;
+              state.boatBlinkTimer = 1.0;
+              state.shakeTrauma = Math.min(1, state.shakeTrauma + 0.5);
+              sfx.explosion();
+              spawnParticles(p.x, p.y, 20, '#FB923C', 45, 195, 3, 6, 0.5, 'spark');
+              updateHUD();
+              if (imp.sunk) {
+                triggerDefeat('enemy_sub');
+                return;
+              }
+            }
+          }
+        }
+
         // Camera exposure meter -> triggers nearby guards to CHASE
         const camReactBoost = (state.level && state.level.reactionBoost) || 1;
         if (playerSeenByAny) {
@@ -16270,6 +16766,33 @@
           mi.x = mi.x1 + (mi.x2 - mi.x1) * s;
           mi.y = mi.y1 + (mi.y2 - mi.y1) * s;
         }
+        for (let i = 0; i < state.movingSharks.length; i++) {
+          const sh = state.movingSharks[i];
+          const prevShX = sh.x;
+          const prevShY = sh.y;
+          const s = 0.5 - 0.5 * Math.cos(now * sh.speed + sh.phase);
+          sh.x = sh.x1 + (sh.x2 - sh.x1) * s;
+          sh.y = sh.y1 + (sh.y2 - sh.y1) * s;
+          const sdx = sh.x - prevShX;
+          const sdy = sh.y - prevShY;
+          if (Math.hypot(sdx, sdy) > 0.05) {
+            sh.angle = Math.atan2(sdy, sdx);
+          }
+        }
+        for (let i = 0; i < state.enemySubs.length; i++) {
+          const es = state.enemySubs[i];
+          if (es.destroyed) continue;
+          const wp = es.waypoints[es.wpIdx];
+          const dx = wp.x - es.x;
+          const dy = wp.y - es.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 12) es.wpIdx = (es.wpIdx + 1) % es.waypoints.length;
+          else {
+            es.angle = lerpAngle(es.angle, Math.atan2(dy, dx), dt * 6);
+            es.x += (dx / dist) * es.speed * 0.75 * dt;
+            es.y += (dy / dist) * es.speed * 0.75 * dt;
+          }
+        }
         for (let i = 0; i < state.traffic.length; i++) {
           const tr = state.traffic[i];
           if (tr.axis === 'y') {
@@ -16412,11 +16935,18 @@
         state.outcome = 'defeat';
         const isNaval = state.level && state.level.mode === 'naval';
         const isVolcanoSub = state.level && state.level.theme === 'volcano_caves_sub';
-        if (reason === 'mine') {
+        if (reason === 'enemy_sub') {
+          ui.endBadge.textContent = 'SUBMARINO HOSTIL';
+          ui.endBadge.style.color = '#F43F5E';
+          ui.endTitle.textContent = '¡Hundido por Submarino Enemigo!';
+          ui.endDesc.textContent = 'Dispara Torpedos Sónicos [Espacio] para destruir los submarinos patrullando antes de que fijen su radar.';
+        } else if (reason === 'mine') {
           ui.endBadge.textContent = 'IMPACTO CON MINA MARINA';
           ui.endBadge.style.color = '#FB923C';
           ui.endTitle.textContent = '¡Detonaste una Mina Marina!';
-          ui.endDesc.textContent = 'Dispara el Cañón Criogénico [Espacio] para congelar y neutralizar minas flotantes antes de cruzar.';
+          ui.endDesc.textContent = isVolcanoSub
+            ? 'Dispara Torpedos Sónicos [Espacio] para neutralizar minas marinas y destruir submarinos enemigos.'
+            : 'Dispara el Cañón Criogénico [Espacio] para congelar y neutralizar minas flotantes antes de cruzar.';
         } else if (reason === 'iceberg') {
           ui.endBadge.textContent = 'IMPACTO CON ICEBERG';
           ui.endBadge.style.color = '#38BDF8';
@@ -16462,10 +16992,10 @@
             18: 'Compensa el viento lateral sobre los vagones, recoge las 2 Tarjetas del Convoy (Vagones 4 y 5) y salta en Motonieve.',
             19: 'Congela la Turbina con CRIO, recoge el Escudo Térmico Norte, baja el Puente con ARPÓN y vence a la Mecha Araña.',
             20: 'Esquiva los reflectores costeros, activa los 2 interruptores y desactiva las 4 Antenas de Radio para abrir la salida.',
-            21: 'Recoge el Camuflaje Tropical y pulsa [Espacio] para volverte semi-invisible durante 5s frente a cámaras, drones y guardias.',
+            21: 'Recoge el Camuflaje Tropical y pulsa [Espacio] para volverte semi-invisible durante 5s frente a cámaras, drones y guardias (Tarjetas A y D).',
             22: 'Recoge el Gancho Trepador para encadenar saltos sobre los abismos y la lava hacia los 4 Altares Dorados del Templo.',
-            23: 'Sube al Jeep 4x4, aprovecha las rampas turbo y usa [Shift] para vencer a las 2 camionetas rivales en las 4 balizas.',
-            24: 'Compensa las corrientes de burbujas, usa el Turbo del Submarino [Shift] y neutraliza minas o drones con los cañones.'
+            23: 'Sube al Jeep 4x4, aprovecha las rampas turbo, esquiva rocas/troncos/baches y usa [Shift] contra los 4x4 rivales.',
+            24: 'Dispara Torpedos Sónicos [Espacio] contra los submarinos enemigos, esquiva los tiburones (2 choques reinician la cueva) y usa Turbo [Shift].'
           };
           ui.endDesc.textContent = tipsByLevel[state.levelIdx]
             || 'Usa el lanzador de peces o dardos para aturdir a los guardias y aprovecha los vehículos para cruzar zonas vigiladas.';
@@ -16511,8 +17041,8 @@
         const hasSwitches = state.switches.length > 0;
         const hasPressure = state.pressureButtons.length > 0;
         const hasHarborRace = Boolean(state.harborRace);
-        const usesBlue = state.doors.some((d) => d.keyColor === 'blue') || state.pickups.some((pk) => pk.keyColor === 'blue');
-        const usesGold = state.doors.some((d) => d.keyColor === 'gold') || state.pickups.some((pk) => pk.keyColor === 'gold');
+        const usesBlue = state.doors.some((d) => d.keyColor === 'blue' || (Array.isArray(d.requiredKeys) && d.requiredKeys.includes('blue'))) || state.pickups.some((pk) => pk.keyColor === 'blue');
+        const usesGold = state.doors.some((d) => d.keyColor === 'gold' || (Array.isArray(d.requiredKeys) && d.requiredKeys.includes('gold'))) || state.pickups.some((pk) => pk.keyColor === 'gold');
         const hackDoors = state.doors.filter((d) => d.type === 'hack');
         const hasHackOnly = hackDoors.length > 0 && !usesBlue && !usesGold && !hasSwitches && !hasPressure;
 
@@ -16668,8 +17198,8 @@
         }
 
         // Dynamic objective guidance
-        const needBlue = state.doors.some((d) => !d.open && d.keyColor === 'blue');
-        const needGold = state.doors.some((d) => !d.open && d.keyColor === 'gold');
+        const needBlue = state.doors.some((d) => !d.open && (d.keyColor === 'blue' || (Array.isArray(d.requiredKeys) && d.requiredKeys.includes('blue'))));
+        const needGold = state.doors.some((d) => !d.open && (d.keyColor === 'gold' || (Array.isArray(d.requiredKeys) && d.requiredKeys.includes('gold'))));
         const needLock = state.doors.some((d) => !d.open && d.type === 'lockpick');
         const nextHack = state.doors.find((d) => !d.open && d.type === 'hack');
         const circuitDoor = state.doors.find((d) => !d.open && d.type === 'circuit');
@@ -16859,10 +17389,10 @@
           ui.hudObjective.textContent = 'Abre la cerradura de seguridad';
         } else if (needBlue && !p.keycards.has('blue')) {
           ui.hudObjective.textContent = 'Recoge la Tarjeta Azul';
-        } else if (needBlue && p.keycards.has('blue')) {
-          ui.hudObjective.textContent = 'Desbloquea la puerta Azul';
         } else if (needGold && !p.keycards.has('gold')) {
-          ui.hudObjective.textContent = 'Recoge la Tarjeta Dorada';
+          ui.hudObjective.textContent = 'Recoge la Tarjeta Dorada (D)';
+        } else if (needBlue && p.keycards.has('blue')) {
+          ui.hudObjective.textContent = 'Desbloquea la puerta de salida';
         } else if (needGold) {
           ui.hudObjective.textContent = 'Desbloquea la puerta Dorada';
         } else if (hasMoto && state.levelIdx === 2 && p.vehicle !== 'moto') {
@@ -16891,6 +17421,11 @@
             ui.equipAmmo.textContent = 'Ilimitado · Apunta a Anclaje [Espacio]';
             ui.touchFireLbl.textContent = 'GANCHO';
             ui.equipIcon.innerHTML = '<line x1="3" y1="19" x2="17" y2="6" stroke="#2DD4BF" stroke-width="2.5" stroke-linecap="round"/><path d="M13 4h7v7" fill="none" stroke="#99F6E4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
+          } else if (w.type === 'sonic_torpedo') {
+            ui.equipName.textContent = 'Torpedo Sónico';
+            ui.equipAmmo.textContent = 'Ilimitado · [Espacio] Disparar';
+            ui.touchFireLbl.textContent = 'TORPEDO';
+            ui.equipIcon.innerHTML = '<ellipse cx="11" cy="12" rx="7" ry="4" fill="#22D3EE" stroke="#E0F2FE" stroke-width="1.5"/><path d="M18 8c2.2 1.8 2.2 6.2 0 8M20.5 6c3 3 3 9 0 12" fill="none" stroke="#67E8F9" stroke-width="1.6" stroke-linecap="round"/>';
           } else {
             ui.equipName.textContent = w.type === 'cryo_snow'
               ? 'Cañón de Nieve Criogénica'
@@ -16928,9 +17463,7 @@
           ui.vehicleCard.classList.remove('hidden');
           if (p.vehicle === 'submarine') {
             ui.vehicleName.textContent = 'Mini Submarino Volcánico';
-            ui.vehicleHint.textContent = p.weapons.length > 0
-              ? '[Shift] Turbo · [Espacio] Cañón'
-              : '[Espacio / Shift] Turbo Submarino';
+            ui.vehicleHint.textContent = '[Shift] Turbo · [Espacio] Torpedo Sónico';
           } else if (p.vehicle === 'boat') {
             ui.vehicleName.textContent = 'Lancha de Escape Antártico';
             ui.vehicleHint.textContent = p.weapons.length > 0
@@ -20913,6 +21446,7 @@
         drawOceanObstacles();
         drawSeaMines();
         drawMovingIcebergs();
+        drawMovingSharks();
         drawAquariumCreatures();
         drawExitZone();
         drawAntarcticShoreDetails();
@@ -20942,11 +21476,13 @@
         drawMovingContainers();
         drawPlayerTrail();
         drawPatrolBoats();
+        drawEnemySubs();
         drawRescuedAllies();
         drawGuards();
         drawPlayer();
         drawHarpoons();
         drawEnemyNets();
+        drawEnemySubShots();
         drawLamps();
         drawCranes();
         drawTrafficLights();
@@ -22059,6 +22595,18 @@
                 ctx.fillStyle = '#67E8F9';
                 ctx.fillRect(x + TILE * 0.5 - 5, y + 18, 10, 2);
                 ctx.fillRect(x + TILE * 0.5 - 5, y + 22, 6, 2);
+              } else if (Array.isArray(d.requiredKeys) && d.requiredKeys.includes('blue') && d.requiredKeys.includes('gold')) {
+                ctx.fillStyle = '#0F172A';
+                roundRect(ctx, x + TILE * 0.5 - 12, y + 14, 24, 14, 4);
+                ctx.fill();
+                ctx.fillStyle = '#38BDF8';
+                ctx.beginPath();
+                ctx.arc(x + TILE * 0.5 - 5, y + 21, 3.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#FACC15';
+                ctx.beginPath();
+                ctx.arc(x + TILE * 0.5 + 5, y + 21, 3.6, 0, Math.PI * 2);
+                ctx.fill();
               } else {
                 ctx.fillStyle = '#0F172A';
                 ctx.beginPath();
@@ -22703,6 +23251,147 @@
         }
       }
 
+      function drawMovingSharks() {
+        if (!state.movingSharks || state.movingSharks.length === 0) return;
+        const now = performance.now() * 0.008;
+        for (let i = 0; i < state.movingSharks.length; i++) {
+          const sh = state.movingSharks[i];
+          const wag = Math.sin(now + i * 1.3) * 0.26;
+          ctx.save();
+          ctx.translate(sh.x, sh.y);
+          ctx.rotate(sh.angle);
+
+          ctx.strokeStyle = 'rgba(244, 63, 94, 0.28)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 31, 16, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Tail fin wagging
+          ctx.save();
+          ctx.translate(-22, 0);
+          ctx.rotate(wag);
+          ctx.fillStyle = '#1E293B';
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-14, -10);
+          ctx.lineTo(-9, 0);
+          ctx.lineTo(-14, 10);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#64748B';
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+          ctx.restore();
+
+          // Body
+          const shGrad = ctx.createLinearGradient(-22, -10, 24, 10);
+          shGrad.addColorStop(0, '#334155');
+          shGrad.addColorStop(1, '#0F172A');
+          ctx.fillStyle = shGrad;
+          ctx.beginPath();
+          ctx.moveTo(26, 0);
+          ctx.quadraticCurveTo(8, -13, -22, -4);
+          ctx.lineTo(-22, 4);
+          ctx.quadraticCurveTo(8, 13, 26, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#94A3B8';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+
+          // Dorsal fin + pectoral fins
+          ctx.fillStyle = '#475569';
+          ctx.beginPath();
+          ctx.moveTo(-2, -3);
+          ctx.lineTo(-12, -14);
+          ctx.lineTo(-9, -2);
+          ctx.closePath();
+          ctx.fill();
+
+          // Glowing Crimson Eye
+          ctx.fillStyle = '#FB7185';
+          ctx.beginPath();
+          ctx.arc(16, -4, 2.3, 0, Math.PI * 2);
+          ctx.arc(16, 4, 2.3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      function drawEnemySubs() {
+        if (!state.enemySubs || state.enemySubs.length === 0) return;
+        const fontFamily = getComputedStyle(document.body).fontFamily;
+        const strobe = Math.floor(performance.now() * 0.008) % 2 === 0;
+        for (let i = 0; i < state.enemySubs.length; i++) {
+          const es = state.enemySubs[i];
+          if (es.destroyed) continue;
+          ctx.save();
+          ctx.translate(es.x, es.y);
+          ctx.save();
+          ctx.rotate(es.angle);
+
+          ctx.fillStyle = 'rgba(2, 6, 23, 0.45)';
+          ctx.beginPath();
+          ctx.ellipse(2, 6, 28, 15, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = es.hitFlash > 0 ? '#FFFFFF' : (es.state === 'CHASE' ? '#4C0519' : '#1E293B');
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 26, 13, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = es.state === 'CHASE' ? '#FB7185' : '#F97316';
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+
+          // Conning tower + glowing viewport
+          ctx.fillStyle = '#0F172A';
+          roundRect(ctx, -8, -7, 15, 14, 4);
+          ctx.fill();
+          ctx.fillStyle = strobe ? '#F43F5E' : '#FB923C';
+          ctx.beginPath();
+          ctx.arc(15, 0, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Rear propeller glow
+          ctx.fillStyle = '#FDBA74';
+          ctx.fillRect(-28, -5, 4, 10);
+          ctx.restore();
+
+          if (es.state === 'CHASE') {
+            ctx.fillStyle = '#EF4444';
+            ctx.beginPath();
+            ctx.arc(0, -28, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '900 14px ' + fontFamily;
+            ctx.textAlign = 'center';
+            ctx.fillText('!', 0, -23);
+          }
+          ctx.restore();
+        }
+      }
+
+      function drawEnemySubShots() {
+        if (!state.enemySubShots || state.enemySubShots.length === 0) return;
+        for (let i = 0; i < state.enemySubShots.length; i++) {
+          const sh = state.enemySubShots[i];
+          ctx.save();
+          ctx.translate(sh.x, sh.y);
+          ctx.rotate(sh.angle);
+          ctx.fillStyle = '#FB923C';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 9, 4.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#FEF08A';
+          ctx.beginPath();
+          ctx.arc(5, 0, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
       function drawPickups() {
         const t = performance.now() * 0.004;
         state.pickups.forEach((pk) => {
@@ -22965,6 +23654,22 @@
             isChase ? 'rgba(248, 113, 113, 0.56)' : 'rgba(253, 224, 71, 0.42)',
             isChase ? 'rgba(239, 68, 68, 0.2)' : 'rgba(253, 224, 71, 0.14)',
             isChase ? 'rgba(252, 165, 165, 0.6)' : 'rgba(253, 224, 71, 0.34)'
+          );
+        });
+
+        // Enemy Submarines Sonar Radar Cones (N25)
+        state.enemySubs.forEach((es) => {
+          if (es.destroyed) return;
+          const isChase = es.state === 'CHASE';
+          drawRaycastLightCone(
+            es.x + Math.cos(es.angle) * 18,
+            es.y + Math.sin(es.angle) * 18,
+            es.angle,
+            es.fov * 0.5,
+            es.range,
+            isChase ? 'rgba(244, 63, 94, 0.56)' : 'rgba(251, 146, 60, 0.40)',
+            isChase ? 'rgba(244, 63, 94, 0.20)' : 'rgba(251, 146, 60, 0.12)',
+            isChase ? 'rgba(253, 164, 175, 0.64)' : 'rgba(253, 186, 116, 0.38)'
           );
         });
 
@@ -24569,6 +25274,66 @@
           ctx.restore();
         }
 
+        // 4b. N24 Physical Track Obstacles (Volcanic Rocks, Fallen Logs & Potholes)
+        for (let i = 0; i < state.trackObstacles.length; i++) {
+          const obs = state.trackObstacles[i];
+          ctx.save();
+          ctx.translate(obs.px, obs.py);
+          if (obs.kind === 'pothole') {
+            ctx.fillStyle = '#0F172A';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, obs.radius * 1.12, obs.radius * 0.78, 0.18, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#D97706';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(120, 53, 15, 0.7)';
+            ctx.beginPath();
+            ctx.ellipse(2, 2, obs.radius * 0.7, obs.radius * 0.45, 0.18, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (obs.kind === 'log') {
+            drawSoftGroundShadow(2, 6, obs.radius * 1.15, 10);
+            ctx.rotate(0.28);
+            ctx.fillStyle = '#78350F';
+            roundRect(ctx, -obs.radius * 1.15, -10, obs.radius * 2.3, 20, 7);
+            ctx.fill();
+            ctx.strokeStyle = '#0F172A';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#B45309';
+            ctx.fillRect(-obs.radius * 0.85, -5, obs.radius * 1.7, 4);
+            ctx.fillStyle = '#10B981';
+            ctx.beginPath();
+            ctx.arc(-6, -7, 4.5, 0, Math.PI * 2);
+            ctx.arc(8, 6, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            drawSoftGroundShadow(2, 7, obs.radius, 12);
+            ctx.fillStyle = '#334155';
+            ctx.beginPath();
+            ctx.moveTo(0, -obs.radius);
+            ctx.lineTo(obs.radius * 0.9, -obs.radius * 0.3);
+            ctx.lineTo(obs.radius * 0.75, obs.radius * 0.8);
+            ctx.lineTo(-obs.radius * 0.65, obs.radius * 0.85);
+            ctx.lineTo(-obs.radius * 0.95, obs.radius * 0.1);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#0F172A';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.strokeStyle = '#FB923C';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(-6, -5);
+            ctx.lineTo(2, 2);
+            ctx.lineTo(8, -2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
         // 5. N25 Submarine Bubble Currents
         for (let i = 0; i < state.bubbleCurrents.length; i++) {
           const bc = state.bubbleCurrents[i];
@@ -25015,7 +25780,22 @@
           ctx.save();
           ctx.translate(pr.x, pr.y);
           ctx.rotate(pr.angle);
-          if (pr.type === 'cryo_snow') {
+          if (pr.type === 'sonic_torpedo') {
+            ctx.fillStyle = '#22D3EE';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 11, 4.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#E0F2FE';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(8, 0, 7, -0.85, 0.85);
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(103, 232, 249, 0.72)';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.arc(11, 0, 11, -0.8, 0.8);
+            ctx.stroke();
+          } else if (pr.type === 'cryo_snow') {
             ctx.fillStyle = '#7DD3FC';
             ctx.beginPath();
             ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
@@ -25147,7 +25927,7 @@
         const circuitDoor = state.doors.find((d) => !d.open && d.type === 'circuit');
         const timedDoorClosed = state.doors.find((d) => !d.open && d.type === 'timed');
         const timedDoorOpen = state.doors.find((d) => d.open && d.type === 'timed');
-        const keyDoor = state.doors.find((d) => !d.open && d.type === 'keycard' && p.keycards.has(d.keyColor));
+        const keyDoor = state.doors.find((d) => !d.open && d.type === 'keycard' && hasAllRequiredKeycards(p.keycards, d));
         const nextSwitch = state.switches.find((sw) => !sw.active);
         const nextButton = state.pressureButtons[0];
         const circuitZone = state.subgameZones.find((sg) => sg.kind === 'metro_circuits' && !sg.completed);
