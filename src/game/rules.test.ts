@@ -85,6 +85,16 @@ import {
   hasAllRequiredKeycards,
   applyTrackObstacleImpact,
   applySubmarineSharkHit,
+  areAllFireBarriersExtinguished,
+  canCrossMagmaWithFoam,
+  evaluateGeothermalValveStrike,
+  evaluateGeothermalValvesOutcome,
+  generateCraterAssaultCourse,
+  evaluateCraterAssaultOutcome,
+  areAllDrillingCoresDisabled,
+  getVolcanoTitanPhase,
+  evaluateVolcanoTitanOutcome,
+  isSagaFullyCompleted,
   type CircuitTile,
   type RushHourBlock,
 } from './rules';
@@ -316,7 +326,7 @@ test('navigation dial circular strike handles wraparound accurately', () => {
   assert.equal(evaluateNavDialStrike(0.5, 0.02, 0.08), 'miss');
 });
 
-test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act V rules', async () => {
+test('all 30 expanded campaign levels in index.html meet scale, door-variety, AI patrol, hazard protection, subgames, and Act II finale rules', async () => {
   const fs = await import('node:fs');
   const html = fs.readFileSync('index.html', 'utf8');
   const match = html.match(/const LEVELS = (\[[\s\S]*?\n      \]);/);
@@ -375,7 +385,10 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     enemySubs?: Array<{ name: string; speed: number; chaseSpeed?: number; range?: number; fov?: number; waypoints: Array<{ x: number; y: number }> }>;
     movingSharks?: Array<{ name?: string; x1: number; y1: number; x2: number; y2: number; speed?: number; radius?: number }>;
     steamVents?: Array<{ x: number; y: number; period?: number; activeDur?: number; phaseOffset?: number; radius?: number }>;
-    drones?: Array<{ name?: string; speed: number; fov?: number; range?: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
+    drones?: Array<{ name?: string; speed: number; fov?: number; range?: number; fishOnly?: boolean; isThermalDrone?: boolean; waypoints: Array<{ x: number; y: number }> }>;
+    fireBarriers?: Array<{ id: string; x: number; y: number; w?: number; h?: number; label?: string }>;
+    fallingRocks?: Array<{ id: string; x: number; y: number; radius?: number; period?: number; phaseOffset?: number }>;
+    drillingCores?: Array<{ id: string; x: number; y: number; label?: string }>;
     postSubgameDrones?: Array<{ name: string; speed: number; fishOnly?: boolean; waypoints: Array<{ x: number; y: number }> }>;
     postSubgameGuards?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
     conveyors?: Array<{ x: number; y: number; w: number; h: number; vx: number; vy: number }>;
@@ -400,7 +413,7 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     patrolBoats?: Array<{ name: string; speed: number; waypoints: Array<{ x: number; y: number }> }>;
   }>;
 
-  assert.equal(levels.length, 25, 'Should contain all 25 campaign levels (20 Antarctica + 5 Volcanic Island)');
+  assert.equal(levels.length, 30, 'Should contain all 30 campaign levels (20 Antarctica + 10 Volcanic Island)');
 
   const isStaticObstacleChar = (ch: string | undefined) =>
     ch === undefined || ch === '#' || ch === 'W' || ch === 'T' || ch === 'B' || ch === 'R' || ch === 'G' || ch === 'H' || ch === 'X' || ch === 'C' || ch === 'L';
@@ -786,6 +799,45 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
       }
     }
 
+    // Campaign 2 Act II Finale: Volcanic Core (N26-N30)
+    if (lvl.id >= 26 && lvl.id <= 30) {
+      assert.equal(lvl.snowstorm || false, false, `${lvl.code}: Volcanic Island Act II finale must not have snowstorms`);
+      assert.ok(!lvl.pickups.some((pk) => pk.weapon === 'cryo_snow'), `${lvl.code}: Volcanic Island Act II finale must not spawn cryo_snow`);
+      assert.ok(lvl.grid.some((r) => r.includes('L')), `${lvl.code}: Volcanic Core level must include magma tiles L`);
+      assert.ok(lvl.pickups.some((pk) => pk.weapon === 'foam'), `${lvl.code}: N26-N30 must include Foam Extinguisher Cannon pickup`);
+      if (lvl.id === 26) {
+        assert.equal(lvl.theme, 'volcano_lab', 'N26 must use volcano_lab theme');
+        assert.equal((lvl.fireBarriers || []).length, 3, 'N26 must have 3 fireBarriers');
+        assert.ok(expandedDoors.some((d) => d.type === 'fire_barriers'), 'N26 must lock exit behind fire_barriers gate');
+        assert.ok((lvl.drones || []).some((d) => d.isThermalDrone), 'N26 must include thermal drones');
+      }
+      if (lvl.id === 27) {
+        assert.equal(lvl.theme, 'volcano_slopes', 'N27 must use volcano_slopes theme');
+        assert.ok((lvl.fallingRocks || []).length >= 4, 'N27 must include falling volcanic rocks');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'geothermal_valves'), 'N27 must include geothermal_valves subgameZone');
+        assert.ok(expandedDoors.some((d) => d.type === 'valves_gate'), 'N27 must lock exit behind valves_gate');
+      }
+      if (lvl.id === 28) {
+        assert.equal(lvl.theme, 'volcano_crater', 'N28 must use volcano_crater theme');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'crater_assault'), 'N28 must include crater_assault subgameZone');
+        assert.ok(expandedDoors.some((d) => d.type === 'crater_gate'), 'N28 must lock exit behind crater_gate');
+      }
+      if (lvl.id === 29) {
+        assert.equal(lvl.theme, 'volcano_fortress', 'N29 must use volcano_fortress theme');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'camouflage'), 'N29 must include Tropical Camouflage pickup');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'grapple'), 'N29 must include Grappling Hook pickup');
+        assert.equal((lvl.drillingCores || []).length, 3, 'N29 must include 3 drillingCores');
+        assert.ok((lvl.fireBarriers || []).length >= 2, 'N29 must include >= 2 fireBarriers');
+        assert.ok(expandedDoors.some((d) => d.type === 'drilling_cores'), 'N29 must lock exit behind drilling_cores gate');
+      }
+      if (lvl.id === 30) {
+        assert.equal(lvl.theme, 'volcano_titan', 'N30 must use volcano_titan theme');
+        assert.ok(lvl.pickups.some((pk) => pk.weapon === 'grapple'), 'N30 must include Grappling Hook pickup');
+        assert.ok((lvl.subgameZones || []).some((z) => z.kind === 'volcano_titan_boss'), 'N30 must include volcano_titan_boss arena subgameZone');
+        assert.ok(expandedDoors.some((d) => d.type === 'titan_core'), 'N30 must lock exit behind titan_core gate');
+      }
+    }
+
     // Expanded exploration maps for N1-N9 & N11-N13 (>= 46x26 tiles)
     assert.ok(cols >= 46 && rows >= 26, `${lvl.code}: expanded exploration map expected >=46x26, got ${cols}x${rows}`);
 
@@ -905,6 +957,8 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     const convoyCardIds = new Set<string>();
     const disabledAntennas = new Set<string>();
     const activeAltars = new Set<string>();
+    const extinguishedBarriers = new Set<string>();
+    const disabledCores = new Set<string>();
     const unlockedGrappleOrigins: Array<{ x: number; y: number }> = [];
     const completedSubgames = new Set<string>();
     let harborRaceWon = false;
@@ -913,6 +967,7 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
     const canWalkNow = (c: number, r: number) => {
       const ch = lvl.grid[r]?.[c];
       if (ch === 'C' && bridgeTileSet.has(`${c},${r}`)) return true;
+      if (ch === 'L' && collectedWeapons.has('foam')) return true;
       if (isStaticObstacleChar(ch)) return false;
       if (ch === 'V' && !completedSubgames.has('magma_platforms')) return false;
       if (ch === 'D' || ch === 'K') return opened.has(`${c},${r}`);
@@ -1164,13 +1219,27 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
           changed = true;
         }
       }
+      if (collectedWeapons.has('foam')) {
+        for (const fb of lvl.fireBarriers || []) {
+          if (!extinguishedBarriers.has(fb.id) && isReachable(Math.floor(fb.x), Math.floor(fb.y))) {
+            extinguishedBarriers.add(fb.id);
+            changed = true;
+          }
+        }
+      }
+      for (const dc of lvl.drillingCores || []) {
+        if (!disabledCores.has(dc.id) && isReachable(Math.floor(dc.x), Math.floor(dc.y))) {
+          disabledCores.add(dc.id);
+          changed = true;
+        }
+      }
       if (collectedWeapons.has('grapple')) {
         for (const anchorA of lvl.grappleAnchors || []) {
           if (!isReachable(Math.floor(anchorA.x), Math.floor(anchorA.y))) continue;
           for (const anchorB of lvl.grappleAnchors || []) {
             if (anchorA === anchorB) continue;
             const distPx = Math.hypot((anchorB.x - anchorA.x) * TILE_SIZE, (anchorB.y - anchorA.y) * TILE_SIZE);
-            if (distPx <= 390 && !isReachable(Math.floor(anchorB.x), Math.floor(anchorB.y))) {
+            if (distPx <= 420 && !isReachable(Math.floor(anchorB.x), Math.floor(anchorB.y))) {
               unlockedGrappleOrigins.push({ x: Math.floor(anchorB.x), y: Math.floor(anchorB.y) });
               changed = true;
             }
@@ -1270,6 +1339,29 @@ test('all 20 expanded campaign levels in index.html meet scale, door-variety, AI
             d.gateId
           )
         ) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'fire_barriers' &&
+          (lvl.fireBarriers || []).length > 0 &&
+          (lvl.fireBarriers || []).every((fb) => extinguishedBarriers.has(fb.id))
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'valves_gate' && completedSubgames.has('geothermal_valves')) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'crater_gate' && completedSubgames.has('crater_assault')) {
+          opened.add(key);
+          changed = true;
+        } else if (
+          d.type === 'drilling_cores' &&
+          (lvl.drillingCores || []).length > 0 &&
+          (lvl.drillingCores || []).every((dc) => disabledCores.has(dc.id))
+        ) {
+          opened.add(key);
+          changed = true;
+        } else if (d.type === 'titan_core' && completedSubgames.has('volcano_titan_boss')) {
           opened.add(key);
           changed = true;
         }
@@ -1462,27 +1554,27 @@ test('Level 9 Captain Boss Battle reflects enemy electric-net shots back at Capt
   assert.equal(evaluateBossBattleOutcome(2, 0), 'lost');
 });
 
-test('persistent save uses escape_antartida_save_v1, keeps all 25 levels unlocked, migrates legacy saves, and unlocks Expert Mode on N20 completion', () => {
+test('persistent save uses escape_antartida_save_v1, keeps all 30 levels unlocked, migrates legacy saves, and unlocks Expert Mode on N20/N30 completion', () => {
   assert.equal(SAVE_STORAGE_KEY, 'escape_antartida_save_v1');
   assert.equal(LEGACY_PROGRESS_STORAGE_KEY, 'operacion_antartida_progress_v1');
-  assert.equal(TOTAL_CAMPAIGN_LEVELS, 25);
-  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 24);
+  assert.equal(TOTAL_CAMPAIGN_LEVELS, 30);
+  assert.equal(DEFAULT_MIN_UNLOCKED_IDX, 29);
 
   const def = createDefaultCampaignSave();
-  assert.equal(def.maxUnlockedIdx, 24);
-  assert.equal(def.completed.length, 25);
+  assert.equal(def.maxUnlockedIdx, 29);
+  assert.equal(def.completed.length, 30);
   assert.equal(def.expertModeUnlocked, false);
   assert.equal(def.expertModeEnabled, false);
 
   const legacyOnly = parseCampaignSave(null, JSON.stringify({ completed: [true, true, true], maxUnlockedIdx: 3, selectedIdx: 2 }));
   assert.equal(legacyOnly.completed[0], true);
   assert.equal(legacyOnly.completed[2], true);
-  assert.equal(legacyOnly.maxUnlockedIdx, 24);
+  assert.equal(legacyOnly.maxUnlockedIdx, 29);
   assert.equal(legacyOnly.selectedIdx, 2);
 
   const updated = recordLevelCompletionSave(def, 19, 68.42, 0, 7, [{ type: 'cryo_snow', ammo: 8 }]);
   assert.equal(updated.completed[19], true);
-  assert.equal(updated.maxUnlockedIdx, 24);
+  assert.equal(updated.maxUnlockedIdx, 29);
   assert.equal(updated.expertModeUnlocked, true);
   assert.equal(updated.records['20']?.bestTimeSec, 68.4);
   assert.equal(updated.records['20']?.minAlerts, 0);
@@ -1771,6 +1863,70 @@ test('N22 dual keycards, N24 track obstacles, and N25 submarine shark 2-hit rest
   assert.equal(secondShark.hullHp, 0);
   assert.equal(secondShark.restartCave, true);
 });
+
+test('N26-N30 Volcanic Act II Finale: foam lava cooling, fire barriers, valves, crater assault, drilling cores, Titan 3-phase boss & 30/30 saga completion', () => {
+  for (const theme of ['volcano_lab', 'volcano_slopes', 'volcano_crater', 'volcano_fortress', 'volcano_titan']) {
+    assert.equal(getMusicThemeForLevel(theme), 'volcanic_island', `${theme} maps to volcanic_island music`);
+  }
+  assert.equal(getMusicThemeForLevel(25), 'volcanic_island');
+  assert.equal(getMusicThemeForLevel(29), 'volcanic_island');
+
+  // N26 Fire Barriers & Foam cooling lava platforms
+  assert.equal(areAllFireBarriersExtinguished([]), false);
+  assert.equal(areAllFireBarriersExtinguished([{ extinguished: true }, { extinguished: false }, { extinguished: true }]), false);
+  assert.equal(areAllFireBarriersExtinguished([{ extinguished: true }, { extinguished: true }, { extinguished: true }]), true);
+
+  assert.equal(canCrossMagmaWithFoam('L', false), false);
+  assert.equal(canCrossMagmaWithFoam('L', true), true);
+  assert.equal(canCrossMagmaWithFoam('V', false), false);
+  assert.equal(canCrossMagmaWithFoam('.', false), true);
+
+  // N27 Geothermal Valves timing & outcome
+  assert.equal(evaluateGeothermalValveStrike(0.5, 0.35, 0.65), 'hit');
+  assert.equal(evaluateGeothermalValveStrike(0.15, 0.35, 0.65), 'miss');
+  assert.equal(evaluateGeothermalValvesOutcome(2, 4, 15, 1), 'playing');
+  assert.equal(evaluateGeothermalValvesOutcome(4, 4, 12, 1), 'won');
+  assert.equal(evaluateGeothermalValvesOutcome(1, 4, 0, 0), 'lost_timeout');
+  assert.equal(evaluateGeothermalValvesOutcome(1, 4, 14, 4), 'lost_overload');
+
+  // N28 Crater Aerial Assault: 4 antennas & sky-bounded hazards
+  const crater = generateCraterAssaultCourse(160, 5200, 64, 376);
+  assert.equal(crater.antennas.length, 4);
+  const skyKinds = new Set(crater.hazards.map((h) => h.kind));
+  assert.ok(skyKinds.has('smoke_plume'));
+  assert.ok(skyKinds.has('aa_flak'));
+  assert.ok(skyKinds.has('missile'));
+  for (const h of crater.hazards) {
+    assert.ok(h.baseY - h.moveAmp >= 64 && h.baseY + h.moveAmp <= 376, `Crater hazard ${h.id} stays inside sky bounds`);
+  }
+  assert.equal(evaluateCraterAssaultOutcome(2, 4, 2, 18), 'playing');
+  assert.equal(evaluateCraterAssaultOutcome(4, 4, 2, 12), 'won');
+  assert.equal(evaluateCraterAssaultOutcome(1, 4, 0, 15), 'lost_hits');
+  assert.equal(evaluateCraterAssaultOutcome(3, 4, 2, 0), 'lost_timeout');
+
+  // N29 Drilling Cores
+  assert.equal(areAllDrillingCoresDisabled([]), false);
+  assert.equal(areAllDrillingCoresDisabled([{ disabled: true }, { disabled: false }, { disabled: true }]), false);
+  assert.equal(areAllDrillingCoresDisabled([{ disabled: true }, { disabled: true }, { disabled: true }]), true);
+
+  // N30 Volcano Titan Boss phases (1 > 65%, 2 > 30%, 3 <= 30%) & outcome
+  assert.equal(getVolcanoTitanPhase(100, 100), 1);
+  assert.equal(getVolcanoTitanPhase(66, 100), 1);
+  assert.equal(getVolcanoTitanPhase(65, 100), 2);
+  assert.equal(getVolcanoTitanPhase(31, 100), 2);
+  assert.equal(getVolcanoTitanPhase(30, 100), 3);
+  assert.equal(getVolcanoTitanPhase(8, 100), 3);
+  assert.equal(evaluateVolcanoTitanOutcome(40, 3), 'playing');
+  assert.equal(evaluateVolcanoTitanOutcome(0, 2), 'won');
+  assert.equal(evaluateVolcanoTitanOutcome(10, 0), 'lost');
+
+  // 30/30 Saga completion check
+  const almost = Array(30).fill(true);
+  almost[29] = false;
+  assert.equal(isSagaFullyCompleted(almost, 30), false);
+  assert.equal(isSagaFullyCompleted(Array(30).fill(true), 30), true);
+});
+
 
 
 

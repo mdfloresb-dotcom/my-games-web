@@ -350,7 +350,12 @@ export function getMusicThemeForLevel(levelIdx: number | string): ActMusicTheme 
       levelIdx === 'biolum_jungle' ||
       levelIdx === 'volcano_ruins' ||
       levelIdx === 'jungle_jeep' ||
-      levelIdx === 'volcano_caves_sub'
+      levelIdx === 'volcano_caves_sub' ||
+      levelIdx === 'volcano_lab' ||
+      levelIdx === 'volcano_slopes' ||
+      levelIdx === 'volcano_crater' ||
+      levelIdx === 'volcano_fortress' ||
+      levelIdx === 'volcano_titan'
     ) {
       return 'volcanic_island';
     }
@@ -1518,8 +1523,8 @@ export function evaluateBossBattleOutcome(
 // =========================================================
 export const SAVE_STORAGE_KEY = 'escape_antartida_save_v1';
 export const LEGACY_PROGRESS_STORAGE_KEY = 'operacion_antartida_progress_v1';
-export const TOTAL_CAMPAIGN_LEVELS = 25;
-export const DEFAULT_MIN_UNLOCKED_IDX = 24; // N1-N25 unlocked by default for immediate Campaign 2 testing
+export const TOTAL_CAMPAIGN_LEVELS = 30;
+export const DEFAULT_MIN_UNLOCKED_IDX = 29; // N1-N30 unlocked by default for full Campaign 2 access
 
 export interface LevelRecord {
   bestTimeSec: number | null;
@@ -2526,4 +2531,183 @@ export function applySubmarineSharkHit(
     restartCave: nextHp <= 0,
   };
 }
+
+// =========================================================
+// ACTO II FINAL: OPERACIÓN ISLA VOLCÁNICA (N26 - N30)
+// =========================================================
+export function areAllFireBarriersExtinguished(barriers: Array<{ extinguished: boolean }>): boolean {
+  if (!barriers || barriers.length === 0) return false;
+  return barriers.every((b) => Boolean(b.extinguished));
+}
+
+export function canCrossMagmaWithFoam(tileChar: string, isCooledByFoam: boolean): boolean {
+  if (tileChar === 'L') return Boolean(isCooledByFoam);
+  if (tileChar === 'V') return false;
+  return true;
+}
+
+export function evaluateGeothermalValveStrike(
+  needlePos: number,
+  zoneStart: number,
+  zoneEnd: number
+): 'hit' | 'miss' {
+  return needlePos >= zoneStart && needlePos <= zoneEnd ? 'hit' : 'miss';
+}
+
+export function evaluateGeothermalValvesOutcome(
+  fixedCount: number,
+  requiredCount: number,
+  timeLeft: number,
+  errors: number,
+  maxErrors = 4
+): 'playing' | 'won' | 'lost_timeout' | 'lost_overload' {
+  if (fixedCount >= requiredCount) return 'won';
+  if (errors >= maxErrors) return 'lost_overload';
+  if (timeLeft <= 0) return 'lost_timeout';
+  return 'playing';
+}
+
+export interface CraterAntenna {
+  id: number;
+  x: number;
+  y: number;
+  radius: number;
+  hp: number;
+  destroyed: boolean;
+}
+
+export interface CraterSkyHazard {
+  id: number;
+  kind: 'smoke_plume' | 'aa_flak' | 'missile';
+  x: number;
+  y: number;
+  baseY: number;
+  radius: number;
+  moveAmp: number;
+  moveFreq: number;
+  phase: number;
+  trackRate?: number;
+}
+
+export function generateCraterAssaultCourse(
+  startX = 160,
+  runwayEnd = 5200,
+  skyTop = 64,
+  skyBot = 376
+): { antennas: CraterAntenna[]; hazards: CraterSkyHazard[] } {
+  const skyH = skyBot - skyTop;
+  const antennas: CraterAntenna[] = [
+    { id: 1, x: Math.round(startX + (runwayEnd - startX) * 0.22), y: Math.round(skyTop + skyH * 0.30), radius: 28, hp: 2, destroyed: false },
+    { id: 2, x: Math.round(startX + (runwayEnd - startX) * 0.45), y: Math.round(skyTop + skyH * 0.72), radius: 28, hp: 2, destroyed: false },
+    { id: 3, x: Math.round(startX + (runwayEnd - startX) * 0.68), y: Math.round(skyTop + skyH * 0.32), radius: 28, hp: 2, destroyed: false },
+    { id: 4, x: Math.round(startX + (runwayEnd - startX) * 0.90), y: Math.round(skyTop + skyH * 0.64), radius: 28, hp: 2, destroyed: false },
+  ];
+
+  const hazards: CraterSkyHazard[] = [];
+  let seed = 28289;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  let hid = 1;
+  for (let x = startX + 280; x < runwayEnd - 180; x += 175) {
+    const roll = rand();
+    if (roll < 0.36) {
+      const margin = 44;
+      const baseY = skyTop + margin + rand() * (skyH - margin * 2);
+      const maxAmp = Math.min(baseY - (skyTop + 26), skyBot - 26 - baseY, 64);
+      hazards.push({
+        id: hid++,
+        kind: 'smoke_plume',
+        x,
+        y: baseY,
+        baseY,
+        radius: 28,
+        moveAmp: Math.max(12, maxAmp),
+        moveFreq: 1.7 + rand() * 0.7,
+        phase: rand() * Math.PI * 2,
+      });
+    } else if (roll < 0.68) {
+      const margin = 42;
+      const baseY = skyTop + margin + rand() * (skyH - margin * 2);
+      const maxAmp = Math.min(baseY - (skyTop + 24), skyBot - 24 - baseY, 72);
+      hazards.push({
+        id: hid++,
+        kind: 'aa_flak',
+        x,
+        y: baseY,
+        baseY,
+        radius: 20,
+        moveAmp: Math.max(14, maxAmp),
+        moveFreq: 2.3 + rand() * 0.8,
+        phase: rand() * Math.PI * 2,
+      });
+    } else {
+      const margin = 46;
+      const baseY = skyTop + margin + rand() * (skyH - margin * 2);
+      const maxAmp = Math.min(baseY - (skyTop + 22), skyBot - 22 - baseY, 68);
+      hazards.push({
+        id: hid++,
+        kind: 'missile',
+        x,
+        y: baseY,
+        baseY,
+        radius: 17,
+        moveAmp: Math.max(14, maxAmp),
+        moveFreq: 2.8 + rand() * 0.9,
+        phase: rand() * Math.PI * 2,
+        trackRate: 58 + rand() * 24,
+      });
+    }
+  }
+  return { antennas, hazards };
+}
+
+export function evaluateCraterAssaultOutcome(
+  destroyedAntennas: number,
+  requiredAntennas: number,
+  hp: number,
+  timeLeft: number
+): 'playing' | 'won' | 'lost_hits' | 'lost_timeout' {
+  if (hp <= 0) return 'lost_hits';
+  if (destroyedAntennas >= requiredAntennas) return 'won';
+  if (timeLeft <= 0) return 'lost_timeout';
+  return 'playing';
+}
+
+export function areAllDrillingCoresDisabled(cores: Array<{ disabled: boolean }>): boolean {
+  if (!cores || cores.length === 0) return false;
+  return cores.every((c) => Boolean(c.disabled));
+}
+
+export type VolcanoTitanPhase = 1 | 2 | 3;
+
+export function getVolcanoTitanPhase(hp: number, maxHp = 100): VolcanoTitanPhase {
+  if (maxHp <= 0) return 3;
+  const pct = (hp / maxHp) * 100;
+  if (pct > 65) return 1;
+  if (pct > 30) return 2;
+  return 3;
+}
+
+export function evaluateVolcanoTitanOutcome(
+  bossHp: number,
+  playerHp: number
+): 'playing' | 'won' | 'lost' {
+  if (bossHp <= 0) return 'won';
+  if (playerHp <= 0) return 'lost';
+  return 'playing';
+}
+
+export function isSagaFullyCompleted(
+  completed: boolean[],
+  totalLevels = TOTAL_CAMPAIGN_LEVELS
+): boolean {
+  if (!Array.isArray(completed) || completed.length < totalLevels) return false;
+  for (let i = 0; i < totalLevels; i++) {
+    if (!completed[i]) return false;
+  }
+  return true;
+}
+
 
